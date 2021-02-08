@@ -2,13 +2,14 @@
 
 Add `<!-- fold -->` to your markup to have the content automatically collapsed in preview mode.
 
-![screenshot](https://user-images.githubusercontent.com/693981/107125185-5667b980-6876-11eb-8757-684c6e3e5c4a.png)
+![screenshot-1](https://user-images.githubusercontent.com/693981/107125185-5667b980-6876-11eb-8757-684c6e3e5c4a.png)
 
 ## Usage
 
 ```
 ## Collapible Headings <!-- fold -->
-Have a section in your markdown that isn't always relevant? Add a crease to the heading so the section is there when you need it but not in the way.
+Have a section in your markdown that isn't always relevant? Add a crease
+to the heading so the section is there when you need it but not in the way.
 
 ## Collapsible Tasks
 - [x] Finish writing README <!-- fold -->
@@ -21,6 +22,8 @@ Have a section in your markdown that isn't always relevant? Add a crease to the 
 - Current Version - 0.1.0 <!-- fold -->
   - Supports headings, tasks, and bullets
 ```
+
+![screenshot-2](https://user-images.githubusercontent.com/693981/107279311-e0558500-6a24-11eb-8f16-878fbfd85b36.png)
 
 ## Credits
 
