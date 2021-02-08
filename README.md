@@ -27,7 +27,7 @@ to the heading so the section is there when you need it but not in the way.
 
 ## Credits
 
-Thanks **@mleo2003** on Discord for the name! So much better than foldmarker.
+Thanks **@mleo2003** on Discord for the plugin name! So much better than foldmarker.
 
 ## Say Thanks 🙏
 

@@ -1,7 +1,7 @@
 {
   "name": "obsidian-creases",
   "version": "0.1.0",
-  "description": "Kanban view of your tasks",
+  "description": "Mark sections of markdown to be collapsed by default",
   "author": "liamcain",
   "main": "main.js",
   "license": "MIT",
