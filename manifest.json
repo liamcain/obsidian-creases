@@ -1,8 +1,8 @@
 {
-  "id": "foldmarker",
-  "name": "Foldmarker",
+  "id": "creases",
+  "name": "Creases",
   "description": "Mark sections of markdown to be collapsed by default",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Liam Cain",
   "authorUrl": "https://github.com/liamcain/",
   "isDesktopOnly": false,
