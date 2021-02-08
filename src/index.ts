@@ -33,7 +33,7 @@ function findListEl(
   );
 
   if (listIdx !== -1) {
-    const count = (htmlStr.substring(0, listIdx).match(/<li>/g) || []).length;
+    const count = (htmlStr.substring(0, listIdx).match(/<li/g) || []).length;
     return [sectionEl.querySelectorAll("li")[count - 1], listIdx];
   }
   return [null, listIdx];
@@ -91,10 +91,7 @@ export default class FoldMarkerPlugin extends Plugin {
     for (const section of renderer.sections) {
       const foldCommentPos = regexIndexOf(section.html, /<!--\s*fold\s*-->/i);
       if (sectionEl === section.el && foldCommentPos !== -1) {
-        if (
-          section.html.startsWith("<ul>") ||
-          section.html.startsWith("<ol>")
-        ) {
+        if (section.html.startsWith("<ul") || section.html.startsWith("<ol")) {
           if (collapseListElements(section.el, section.html, foldCommentPos)) {
             window.getSelection().removeAllRanges();
             section.resetCompute();
