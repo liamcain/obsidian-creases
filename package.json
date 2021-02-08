@@ -1,6 +1,6 @@
 {
-  "name": "kanban",
-  "version": "0.0.1",
+  "name": "obsidian-creases",
+  "version": "0.1.0",
   "description": "Kanban view of your tasks",
   "author": "liamcain",
   "main": "main.js",
