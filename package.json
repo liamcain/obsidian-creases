@@ -1,6 +1,6 @@
 {
   "name": "obsidian-creases",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Mark sections of markdown to be collapsed by default",
   "author": "liamcain",
   "main": "main.js",

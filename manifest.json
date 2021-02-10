@@ -2,9 +2,9 @@
   "id": "creases",
   "name": "Creases",
   "description": "Mark sections of markdown to be collapsed by default",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Liam Cain",
   "authorUrl": "https://github.com/liamcain/",
   "isDesktopOnly": false,
-  "minAppVersion": "0.10.9"
+  "minAppVersion": "0.10.11"
 }
