@@ -65,6 +65,25 @@ export default class FoldMarkerPlugin extends Plugin {
     MarkdownPreviewRenderer.registerPostProcessor(
       this.collapseFoldmarkers.bind(this)
     );
+
+    this.addCommand({
+      id: "refold",
+      name: "Refold",
+      checkCallback: (checking: boolean) => {
+        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (checking) {
+          return !!activeView;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const renderer = (<any>activeView.previewMode).renderer;
+
+        // force a rerender
+        const text = renderer.text;
+        renderer.clear();
+        renderer.set(text);
+      },
+    });
   }
 
   collapseFoldmarkers(
@@ -93,12 +112,13 @@ export default class FoldMarkerPlugin extends Plugin {
       if (sectionEl === section.el && foldCommentPos !== -1) {
         if (section.html.startsWith("<ul") || section.html.startsWith("<ol")) {
           if (collapseListElements(section.el, section.html, foldCommentPos)) {
-            window.getSelection().removeAllRanges();
             section.resetCompute();
           }
         } /* folding heading */ else {
           section.setCollapsed(true);
         }
+        window.getSelection().removeAllRanges();
+        renderer.owner.onFoldChange();
         renderer.queueRender();
         return;
       }
