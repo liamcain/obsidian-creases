@@ -1,0 +1,7 @@
+.HyperMD-header.cm-line .cm-comment {
+  font-size: 80%;
+}
+
+.HyperMD-header.cm-line:not(.cm-active) .cm-comment {
+  display: none;
+}
