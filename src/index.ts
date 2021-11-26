@@ -1,71 +1,7 @@
-import {
-  MarkdownPostProcessorContext,
-  MarkdownPreviewRenderer,
-  MarkdownView,
-  Plugin,
-} from "obsidian";
+import { Editor, HeadingCache, MarkdownView, Menu, Plugin } from "obsidian";
 
-function regexIndexOf(text: string, re: RegExp, startPos = 0) {
-  const indexInSuffix = text.slice(startPos).search(re);
-  return indexInSuffix < 0 ? indexInSuffix : indexInSuffix + startPos;
-}
-
-/**
- * Finds the first <li> element within sectionEl that appears after startIndex.
- *
- * Relies on the fact that querySelector traverses depth-first, so I can count
- * the total number of <li> elements then return the nth result from querying
- * the DOM element.
- *
- * @param sectionEl
- * @param htmlStr
- * @param startIndex
- */
-function findListEl(
-  sectionEl: HTMLElement,
-  htmlStr: string,
-  startIndex: number
-): [HTMLElement, number] {
-  const listIdx = regexIndexOf(
-    htmlStr,
-    /<!--\s*fold\s*-->.*<ul|ol>$/i,
-    startIndex
-  );
-
-  if (listIdx !== -1) {
-    const count = (htmlStr.substring(0, listIdx).match(/<li/g) || []).length;
-    return [sectionEl.querySelectorAll("li")[count - 1], listIdx];
-  }
-  return [null, listIdx];
-}
-
-/**
- * Recursively collapses all li elements within a section that have a foldmarker
- * @param sectionEl
- * @param htmlStr
- * @param startIndex
- */
-function collapseListElements(
-  sectionEl: HTMLElement,
-  htmlStr: string,
-  startIndex: number
-): boolean {
-  const [listEl, listElIdx] = findListEl(sectionEl, htmlStr, startIndex);
-  if (!listEl) {
-    return false;
-  }
-
-  listEl.toggleClass("is-collapsed", true);
-  collapseListElements(sectionEl, htmlStr, listElIdx + 1);
-  return true;
-}
-
-export default class FoldMarkerPlugin extends Plugin {
+export default class CreasesPlugin extends Plugin {
   async onload(): Promise<void> {
-    MarkdownPreviewRenderer.registerPostProcessor(
-      this.collapseFoldmarkers.bind(this)
-    );
-
     this.addCommand({
       id: "refold",
       name: "Refold",
@@ -74,54 +10,86 @@ export default class FoldMarkerPlugin extends Plugin {
         if (checking) {
           return !!activeView;
         }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const renderer = (<any>activeView.previewMode).renderer;
-
-        // force a rerender
-        const text = renderer.text;
-        renderer.clear();
-        renderer.set(text);
+        this.foldCreases(activeView);
       },
     });
-  }
 
-  collapseFoldmarkers(
-    el: HTMLElement,
-    ctx: MarkdownPostProcessorContext
-  ): void {
-    this.app.workspace.iterateAllLeaves((leaf) => {
-      if (leaf.view instanceof MarkdownView) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (leaf.view.file.path === (<any>ctx).sourcePath) {
-          this.collapseFoldmarkersForView(leaf.view, el);
-        }
-      }
+    this.addCommand({
+      id: "add-crease",
+      name: "Add Crease",
+      editorCallback: (editor: Editor) => {
+        this.addCrease(editor);
+      },
     });
+
+    this.registerEvent(this.app.workspace.on("editor-menu", this.onEditorMenu, this));
   }
 
-  collapseFoldmarkersForView(
-    markdownView: MarkdownView,
-    sectionEl: HTMLElement
-  ): void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const renderer = (<any>markdownView.previewMode).renderer;
-
-    for (const section of renderer.sections) {
-      const foldCommentPos = regexIndexOf(section.html, /<!--\s*fold\s*-->/i);
-      if (sectionEl === section.el && foldCommentPos !== -1) {
-        if (section.html.startsWith("<ul") || section.html.startsWith("<ol")) {
-          if (collapseListElements(section.el, section.html, foldCommentPos)) {
-            section.resetCompute();
-          }
-        } /* folding heading */ else {
-          section.setCollapsed(true);
-        }
-        window.getSelection().removeAllRanges();
-        renderer.owner.onFoldChange();
-        renderer.queueRender();
-        return;
-      }
+  onEditorMenu(menu: Menu, editor: Editor, view: MarkdownView) {
+    if (!editor.getSelection()) {
+      return;
     }
+
+    menu.addItem((item) =>
+      item.setTitle("Toggle crease").onClick(() => {
+        this.addCrease(editor);
+      })
+    );
+  }
+
+  findCurrentHeading(view: MarkdownView): HeadingCache | null {
+    const editor = view.editor;
+    const cursor = editor.getCursor("head");
+    const metadata = this.app.metadataCache.getFileCache(view.file);
+    if (!metadata.headings) {
+      return null;
+    }
+
+    return metadata.headings
+      .reverse()
+      .find((headingInfo) => headingInfo.position.start.line <= cursor.line);
+  }
+
+  addCrease(editor: Editor): void {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    const heading = this.findCurrentHeading(view);
+    if (!heading) {
+      return;
+    }
+
+    const lineNum = heading.position.start.line;
+    const line = editor.getLine(lineNum);
+    const from = {
+      line: lineNum,
+      ch: line.length,
+    };
+
+    const to = {
+      line: lineNum,
+      ch: line.length,
+    };
+    editor.replaceRange(" %% fold %%", from, to);
+  }
+
+  async foldCreases(view: MarkdownView) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingFolds = await (this.app as any).foldManager.load(view.file);
+
+    const foldPositions = [
+      ...(existingFolds ?? []),
+      ...this.app.metadataCache
+        .getFileCache(view.file)
+        .headings?.filter((headingInfo) => headingInfo.heading.includes("%% fold %%"))
+        .map((headingInfo) => ({
+          from: headingInfo.position.start.line,
+          to: headingInfo.position.start.line + 1,
+        })),
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (view.currentMode as any).applyFoldInfo({
+      folds: foldPositions,
+      lines: view.editor.lineCount(),
+    });
   }
 }
