@@ -7,38 +7,29 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "build": "npm run lint && rollup -c",
-    "test": "jest --passNoTests",
-    "test:watch": "yarn test -- --watch"
+    "dev": "node esbuild.config.mjs",
+    "build": "yarn run lint && node esbuild.config.mjs production"
   },
-  "dependencies": {
-    "obsidian": "0.12.17",
-    "tslib": "2.3.1"
+  "peerDependencies": {
+    "@codemirror/language": "0.19.x",
+    "@codemirror/rangeset": "0.19.x",
+    "@codemirror/view": "0.19.x"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "21.0.1",
-    "@rollup/plugin-node-resolve": "13.0.6",
-    "@rollup/plugin-typescript": "8.3.0",
-    "@types/node": "16.11.10",
-    "@typescript-eslint/eslint-plugin": "5.4.0",
-    "@typescript-eslint/parser": "4.13.0",
+    "builtin-modules": "^3.2.0",
+    "@codemirror/language": "^0.19.3",
+    "@codemirror/rangeset": "^0.19.1",
+    "@codemirror/view": "^0.19.7",
+    "@codemirror/basic-setup": "^0.19.0",
+    "@codemirror/buildhelper": "^0.1.0",
+    "@codemirror/lang-css": "^0.19.3",
+    "esbuild": "0.13.12",
+    "@types/node": "^16.11.6",
+    "@typescript-eslint/eslint-plugin": "5.13.0",
+    "@typescript-eslint/parser": "5.13.0",
     "eslint": "8.3.0",
-    "jest": "27.3.1",
-    "moment": "2.29.1",
-    "rollup": "2.60.1",
-    "ts-jest": "27.0.7",
-    "typescript": "4.5.2"
-  },
-  "jest": {
-    "moduleNameMapper": {
-      "src/(.*)": "<rootDir>/src/$1"
-    },
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "moduleFileExtensions": [
-      "js",
-      "ts"
-    ]
+    "obsidian": "0.13.26",
+    "typescript": "4.5.2",
+    "tslib": "2.3.1"
   }
 }
