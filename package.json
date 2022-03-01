@@ -1,7 +1,7 @@
 {
   "name": "obsidian-creases",
   "version": "0.3.0",
-  "description": "Mark sections of markdown to be collapsed by default",
+  "description": "Configurable folding within Obsidian",
   "author": "liamcain",
   "main": "main.js",
   "license": "MIT",

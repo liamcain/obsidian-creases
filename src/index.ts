@@ -117,9 +117,12 @@ export default class CreasesPlugin extends Plugin {
     }
 
     menu.addItem((item) =>
-      item.setTitle("Toggle crease").onClick(() => {
-        this.toggleCrease(editor);
-      })
+      item
+        .setTitle("Toggle crease")
+        .setIcon("shirt")
+        .onClick(() => {
+          this.toggleCrease(editor);
+        })
     );
   }
 
@@ -148,41 +151,30 @@ export default class CreasesPlugin extends Plugin {
 
     if (hasFold(line)) {
       // Remove crease
-      const from = {
-        line: lineNum,
-        ch: 0,
-      };
-
-      const to = {
-        line: lineNum,
-        ch: line.length,
-      };
-      const lineWithoutCrease = line.replace("%% fold %%", "");
+      const from = { line: lineNum, ch: 0 };
+      const to = { line: lineNum, ch: line.length };
+      const lineWithoutCrease = line.replace("%% fold %%", "").trimEnd();
       editor.replaceRange(lineWithoutCrease, from, to);
     } else {
       // Add Crease
-      const from = {
-        line: lineNum,
-        ch: line.length,
-      };
-
-      const to = {
-        line: lineNum,
-        ch: line.length,
-      };
-      editor.replaceRange(" %% fold %%", from, to);
+      const from = { line: lineNum, ch: 0 };
+      const to = { line: lineNum, ch: line.length };
+      editor.replaceRange(`${line} %% fold %%`, from, to);
     }
   }
 
-  async foldCreases({ view, file }: IFoldable) {
-    const activeFile = view?.file ?? file;
+  async foldCreases(foldable: IFoldable) {
+    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+
+    const file = foldable.view?.file ?? foldable.file;
+    const view = activeView.file === file ? activeView : foldable.view;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingFolds = await (this.app as any).foldManager.load(activeFile);
+    const existingFolds = await (this.app as any).foldManager.load(file);
 
     const foldPositions = [
       ...(existingFolds?.folds ?? []),
-      ...(this.app.metadataCache.getFileCache(activeFile).headings || [])
+      ...(this.app.metadataCache.getFileCache(file).headings || [])
         .filter((headingInfo) => hasFold(headingInfo.heading))
         .map((headingInfo) => ({
           from: headingInfo.position.start.line,
@@ -198,7 +190,7 @@ export default class CreasesPlugin extends Plugin {
       });
     } else {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (this.app as any).foldManager.save(activeFile, foldPositions);
+      await (this.app as any).foldManager.save(file, foldPositions);
     }
   }
 }
