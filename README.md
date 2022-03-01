@@ -11,7 +11,12 @@ Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along crease
 - **Toggle Crease** – Create/uncrease the current section that you're in
 - **Fold along creases** – Fold all the creased sections of your file
 - **Fold headings by level** – Fold all headings in the correct document that match a given level (H1 - H6)
+- **Iron out the creases** – Remove all the creases from the current file
+- **Crease the current folds** – Applies a crease to the current folds in the file, allowing you to easily get back to these current folds using **fold along creases**.
 
+## Additional Features
+
+_Coming Soon_ Use creaes to have folds in your [Templater](https://github.com/SilentVoid13/Templater) templates. Your `%% fold %%` markers will start folded.
 
 ## Credits
 
