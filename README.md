@@ -2,7 +2,7 @@
 
 Tools for efficiently folding markdown sections in Obsidian.
 
-![creases-overview](https://user-images.githubusercontent.com/693981/156103568-42239693-57e0-4a61-8ecb-f2c363664f60.png)
+![creases-overview](https://user-images.githubusercontent.com/693981/156103767-33f311de-39ac-422d-b8ea-987ea9c63f7b.png)
 
 Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along creases** to get your file into the state you want.
 
