@@ -4,3 +4,4 @@ data.json
 main.js
 .vscode/
 *.code-workspace
+.DS_Store
