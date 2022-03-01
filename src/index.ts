@@ -214,8 +214,6 @@ export default class CreasesPlugin extends Plugin {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingFolds = await (this.app as any).foldManager.load(view.file);
 
-    console.log("existingFolds", existingFolds);
-
     (existingFolds?.folds ?? []).forEach((fold: IEditorFold) => {
       const from = { line: fold.from, ch: 0 };
       const line = editor.getLine(fold.from);
