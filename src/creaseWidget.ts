@@ -3,29 +3,49 @@ import {
   DecorationSet,
   EditorView,
   MatchDecorator,
+  PluginField,
   ViewPlugin,
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view";
-import { SelectionRange } from "@codemirror/state";
-import { editorLivePreviewField, setIcon } from "obsidian";
-
-interface CreaseDecoration extends Decoration {
-  widget: CreaseWidget;
-}
+import { App, editorLivePreviewField, Menu, setIcon } from "obsidian";
 
 class CreaseWidget extends WidgetType {
-  constructor(readonly from: number, readonly to: number) {
+  constructor(
+    readonly app: App,
+    readonly view: EditorView,
+    readonly from: number,
+    readonly to: number
+  ) {
     super();
   }
 
   eq(other: CreaseWidget) {
-    return other.from === this.from && other.to === this.to;
+    return other.view === this.view && other.from === this.from && other.to === this.to;
   }
 
   toDOM() {
     const creaseEl = createSpan("cm-creases-icon");
     setIcon(creaseEl, "shirt", 12);
+    creaseEl.addEventListener("click", (evt) => {
+      const menu = new Menu(this.app);
+      menu
+        .addItem((item) =>
+          item
+            .setTitle("Remove crease")
+            .setIcon("x")
+            .onClick(() => {
+              this.view.dispatch({
+                changes: {
+                  from: this.from,
+                  to: this.to,
+                  insert: "",
+                },
+              });
+            })
+        )
+        .showAtMouseEvent(evt);
+    });
     return creaseEl;
   }
 
@@ -34,17 +54,7 @@ class CreaseWidget extends WidgetType {
   }
 }
 
-const rangesInclude = (ranges: readonly SelectionRange[], from: number, to: number) => {
-  for (const range of ranges) {
-    const { from: rFrom, to: rTo } = range;
-    if (rFrom >= from && rFrom <= to) return true;
-    if (rTo >= from && rTo <= to) return true;
-    if (rFrom < from && rTo > to) return true;
-  }
-  return false;
-};
-
-export function creasePlugin() {
+export function creasePlugin(app: App) {
   return ViewPlugin.fromClass(
     class {
       decorations: DecorationSet = Decoration.none;
@@ -56,16 +66,14 @@ export function creasePlugin() {
           regexp: /%%\s+fold\s+%%/g,
           decoration: this.getDeco.bind(this),
         });
-        this.allDecos = this.decorator.createDeco(view);
-        this.decorations = this.allDecos;
+        this.decorations = this.decorator.createDeco(view);
       }
 
       getDeco(match: RegExpExecArray, _view: EditorView, pos: number) {
         const from = pos;
         const to = pos + match[0].length;
         return Decoration.replace({
-          inclusive: true,
-          widget: new CreaseWidget(from, to),
+          widget: new CreaseWidget(app, this.view, from, to),
         });
       }
 
@@ -74,25 +82,12 @@ export function creasePlugin() {
           this.decorations = Decoration.none;
           return;
         }
-
-        this.allDecos = this.decorator.updateDeco(update, this.allDecos);
-        if (update.docChanged || update.viewportChanged || update.selectionSet) {
-          this.decorations = this.allDecos.update({
-            filter: (_, __, decoration) => {
-              return !rangesInclude(
-                update.state.selection.ranges,
-                (decoration as CreaseDecoration).widget.from,
-                (decoration as CreaseDecoration).widget.to
-              );
-            },
-          });
-        }
+        this.decorations = this.decorator.updateDeco(update, this.decorations);
       }
     },
     {
       decorations: (v) => v.decorations,
+      provide: PluginField.atomicRanges.from((val) => val.decorations),
     }
   );
 }
-
-export const crease = creasePlugin();

@@ -1,14 +1,14 @@
 import {
   Editor,
-  EditorSelection,
   HeadingCache,
   MarkdownView,
   Menu,
   Plugin,
+  TemplaterAppendedEvent,
+  TemplaterNewNoteEvent,
   TFile,
 } from "obsidian";
-import { crease } from "./creaseWidget";
-import { HeadingLevelSuggestModal } from "./headingSuggestModal";
+import { creasePlugin } from "./creaseWidget";
 import { hasFold } from "./utils";
 
 interface IFoldable {
@@ -17,9 +17,11 @@ interface IFoldable {
 }
 
 interface IEditorFold {
-  from: int;
-  to: int;
+  from: number;
+  to: number;
 }
+
+const headingLevels = [1, 2, 3, 4, 5, 6];
 
 export default class CreasesPlugin extends Plugin {
   private asyncFoldQueue: IFoldable[];
@@ -27,7 +29,7 @@ export default class CreasesPlugin extends Plugin {
   async onload(): Promise<void> {
     this.asyncFoldQueue = [];
 
-    this.registerEditorExtension(crease);
+    this.registerEditorExtension(creasePlugin(this.app));
     this.addCommand({
       id: "fold",
       name: "Fold along creases",
@@ -43,12 +45,6 @@ export default class CreasesPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "fold-headings-by-level",
-      name: "Fold headings by level...",
-      editorCallback: this.onFoldHeadingsByLevel.bind(this),
-    });
-
-    this.addCommand({
       id: "crease-current-folds",
       name: "Crease the current folds",
       editorCallback: this.creaseCurrentFolds.bind(this),
@@ -60,22 +56,31 @@ export default class CreasesPlugin extends Plugin {
       editorCallback: this.clearCreases.bind(this),
     });
 
+    headingLevels.forEach((level) => {
+      this.addCommand({
+        id: `toggle-fold-heading-level-${level}`,
+        name: `Toggle fold for H${level}`,
+        editorCheckCallback: (checking: boolean, editor: Editor, view: MarkdownView) => {
+          if (checking) {
+            const headings =
+              this.app.metadataCache.getFileCache(view.file)?.headings ?? [];
+            return headings.find((h) => h.level === level) !== undefined;
+          }
+          this.toggleFoldForHeadingLevel(editor, view, level);
+        },
+      });
+    });
+
     this.registerEvent(this.app.workspace.on("editor-menu", this.onEditorMenu, this));
     this.registerEvent(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this.app.workspace as any).on(
+      this.app.workspace.on(
         "templater:new-note-from-template",
         this.onTemplaterNewFile,
         this
       )
     );
     this.registerEvent(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this.app.workspace as any).on(
-        "templater:template-appended",
-        this.onTemplaterAppend,
-        this
-      )
+      this.app.workspace.on("templater:template-appended", this.onTemplaterAppend, this)
     );
 
     this.registerEvent(
@@ -90,18 +95,14 @@ export default class CreasesPlugin extends Plugin {
     );
   }
 
-  async onTemplaterNewFile(createdFile: TFile, templateContents: string) {
-    if (hasFold(templateContents)) {
-      this.asyncFoldQueue.push({ file: createdFile });
+  async onTemplaterNewFile(evt: TemplaterNewNoteEvent) {
+    const { file, contents } = evt;
+    if (hasFold(contents)) {
+      this.asyncFoldQueue.push({ file });
     }
   }
 
-  async onTemplaterAppend(evt: {
-    oldSelections: EditorSelection[];
-    newSelections: EditorSelection[];
-    view: MarkdownView;
-    content: string;
-  }) {
+  async onTemplaterAppend(evt: TemplaterAppendedEvent) {
     const { view, newSelections, oldSelections, content } = evt;
 
     if (hasFold(content)) {
@@ -116,16 +117,11 @@ export default class CreasesPlugin extends Plugin {
         }
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (view.currentMode as any).applyFoldInfo({
+      view.currentMode.applyFoldInfo({
         folds: foldPositions,
         lines: view.editor.lineCount(),
       });
     }
-  }
-
-  onFoldHeadingsByLevel() {
-    new HeadingLevelSuggestModal(this.app).open();
   }
 
   onEditorMenu(menu: Menu, editor: Editor, view: MarkdownView) {
@@ -199,20 +195,52 @@ export default class CreasesPlugin extends Plugin {
     ];
 
     if (view) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (view.currentMode as any).applyFoldInfo({
+      view.currentMode.applyFoldInfo({
         folds: foldPositions,
         lines: view.editor.lineCount(),
       });
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (this.app as any).foldManager.save(file, foldPositions);
+      await this.app.foldManager.save(file, foldPositions);
+    }
+  }
+
+  async toggleFoldForHeadingLevel(
+    _editor: Editor,
+    view: MarkdownView,
+    level: number
+  ): Promise<void> {
+    const existingFolds = (await this.app.foldManager.load(view.file))?.folds ?? [];
+
+    const headingsAtLevel = (
+      this.app.metadataCache.getFileCache(view.file).headings || []
+    ).filter((heading) => heading.level === level);
+    const headingLineNums = new Set(headingsAtLevel.map((h) => h.position.start.line));
+    const firstHeadingPos = headingsAtLevel[0].position.start;
+
+    // First heading at level is folded, unfold all headings at level
+    if (existingFolds.find((fold) => fold.from === firstHeadingPos.line)) {
+      view.currentMode.applyFoldInfo({
+        folds: existingFolds.filter((fold) => !headingLineNums.has(fold.from)),
+        lines: view.editor.lineCount(),
+      });
+    } else {
+      const foldPositions = [
+        ...existingFolds,
+        ...headingsAtLevel.map((headingInfo) => ({
+          from: headingInfo.position.start.line,
+          to: headingInfo.position.start.line + 1,
+        })),
+      ];
+
+      view.currentMode.applyFoldInfo({
+        folds: foldPositions,
+        lines: view.editor.lineCount(),
+      });
     }
   }
 
   async creaseCurrentFolds(editor: Editor, view: MarkdownView) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingFolds = await (this.app as any).foldManager.load(view.file);
+    const existingFolds = await this.app.foldManager.load(view.file);
 
     (existingFolds?.folds ?? []).forEach((fold: IEditorFold) => {
       const from = { line: fold.from, ch: 0 };

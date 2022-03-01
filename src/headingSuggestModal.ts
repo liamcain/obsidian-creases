@@ -26,8 +26,7 @@ export class HeadingLevelSuggestModal extends FuzzySuggestModal<FoldLevel> {
   async onChooseItem(item: FoldLevel, _evt: MouseEvent | KeyboardEvent): Promise<void> {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingFolds = await (this.app as any).foldManager.load(view.file);
+    const existingFolds = await this.app.foldManager.load(view.file);
 
     const foldPositions = [
       ...(existingFolds?.folds ?? []),
@@ -39,8 +38,7 @@ export class HeadingLevelSuggestModal extends FuzzySuggestModal<FoldLevel> {
         })),
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (view.currentMode as any).applyFoldInfo({
+    view.currentMode.applyFoldInfo({
       folds: foldPositions,
       lines: view.editor.lineCount(),
     });

@@ -16,7 +16,7 @@ Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along crease
 
 ## Additional Features
 
-_Coming Soon_ Use creaes to have folds in your [Templater](https://github.com/SilentVoid13/Templater) templates. Your `%% fold %%` markers will start folded.
+_Coming Soon_ **Templater Support** – Add creases to your [Templater](https://github.com/SilentVoid13/Templater) templates to have content automatically folded.
 
 ## Credits
 
