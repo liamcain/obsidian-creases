@@ -16,6 +16,11 @@ interface IFoldable {
   file?: TFile;
 }
 
+interface IEditorFold {
+  from: int;
+  to: int;
+}
+
 export default class CreasesPlugin extends Plugin {
   private asyncFoldQueue: IFoldable[];
 
@@ -38,9 +43,21 @@ export default class CreasesPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "fold-headings",
-      name: "Fold headings...",
-      editorCallback: this.onFoldHeadings.bind(this),
+      id: "fold-headings-by-level",
+      name: "Fold headings by level...",
+      editorCallback: this.onFoldHeadingsByLevel.bind(this),
+    });
+
+    this.addCommand({
+      id: "crease-current-folds",
+      name: "Crease the current folds",
+      editorCallback: this.creaseCurrentFolds.bind(this),
+    });
+
+    this.addCommand({
+      id: "clear-creases",
+      name: "Iron out the creases",
+      editorCallback: this.clearCreases.bind(this),
     });
 
     this.registerEvent(this.app.workspace.on("editor-menu", this.onEditorMenu, this));
@@ -88,7 +105,7 @@ export default class CreasesPlugin extends Plugin {
     const { view, newSelections, oldSelections, content } = evt;
 
     if (hasFold(content)) {
-      const foldPositions = [];
+      const foldPositions: IEditorFold[] = [];
       for (let i = oldSelections[0].head.line; i <= newSelections[0].anchor.line; i++) {
         const line = view.editor.getLine(i);
         if (hasFold(line)) {
@@ -107,11 +124,11 @@ export default class CreasesPlugin extends Plugin {
     }
   }
 
-  onFoldHeadings() {
+  onFoldHeadingsByLevel() {
     new HeadingLevelSuggestModal(this.app).open();
   }
 
-  onEditorMenu(menu: Menu, editor: Editor, _view: MarkdownView) {
+  onEditorMenu(menu: Menu, editor: Editor, view: MarkdownView) {
     if (!editor.getSelection()) {
       return;
     }
@@ -121,7 +138,7 @@ export default class CreasesPlugin extends Plugin {
         .setTitle("Toggle crease")
         .setIcon("shirt")
         .onClick(() => {
-          this.toggleCrease(editor);
+          this.toggleCrease(editor, view);
         })
     );
   }
@@ -139,8 +156,7 @@ export default class CreasesPlugin extends Plugin {
       .find((headingInfo) => headingInfo.position.start.line <= cursor.line);
   }
 
-  toggleCrease(editor: Editor): void {
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+  toggleCrease(editor: Editor, view: MarkdownView): void {
     const heading = this.findCurrentHeading(view);
     if (!heading) {
       return;
@@ -157,9 +173,9 @@ export default class CreasesPlugin extends Plugin {
       editor.replaceRange(lineWithoutCrease, from, to);
     } else {
       // Add Crease
-      const from = { line: lineNum, ch: 0 };
+      const from = { line: lineNum, ch: line.length };
       const to = { line: lineNum, ch: line.length };
-      editor.replaceRange(`${line} %% fold %%`, from, to);
+      editor.replaceRange(" %% fold %%", from, to);
     }
   }
 
@@ -191,6 +207,31 @@ export default class CreasesPlugin extends Plugin {
     } else {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (this.app as any).foldManager.save(file, foldPositions);
+    }
+  }
+
+  async creaseCurrentFolds(editor: Editor, view: MarkdownView) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingFolds = await (this.app as any).foldManager.load(view.file);
+
+    console.log("existingFolds", existingFolds);
+
+    (existingFolds?.folds ?? []).forEach((fold: IEditorFold) => {
+      const from = { line: fold.from, ch: 0 };
+      const line = editor.getLine(fold.from);
+      if (!hasFold(line)) {
+        editor.setLine(from.line, `${line} %% fold %%`);
+      }
+    });
+  }
+
+  clearCreases(editor: Editor, _view: MarkdownView) {
+    for (let lineNum = 0; lineNum < editor.lastLine(); lineNum++) {
+      const line = editor.getLine(lineNum);
+      if (hasFold(line)) {
+        const lineWithoutCrease = line.replace("%% fold %%", "").trimEnd();
+        editor.setLine(lineNum, lineWithoutCrease);
+      }
     }
   }
 }

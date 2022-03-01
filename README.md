@@ -1,33 +1,21 @@
 # Creases :shirt:
 
-Add `<!-- fold -->` to your markup to have the content automatically collapsed in preview mode.
+Tools for efficiently folding markdown sections in Obsidian.
 
-![screenshot-1](https://user-images.githubusercontent.com/693981/107125185-5667b980-6876-11eb-8757-684c6e3e5c4a.png)
+![creases-overview](https://user-images.githubusercontent.com/693981/156103568-42239693-57e0-4a61-8ecb-f2c363664f60.png)
 
-## Usage
+Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along creases** to get your file into the state you want.
 
-```
-## Collapible Headings <!-- fold -->
-Have a section in your markdown that isn't always relevant? Add a crease
-to the heading so the section is there when you need it but not in the way.
+## Commands
 
-## Collapsible Tasks
-- [x] Finish writing README <!-- fold -->
-	- [x] Come up with example for headings
-	- [x] Come up with example for bullets
-	- [x] Make sure to add proper credits
-- [ ] Get people excited about the plugin
+- **Toggle Crease** – Create/uncrease the current section that you're in
+- **Fold along creases** – Fold all the creased sections of your file
+- **Fold headings by level** – Fold all headings in the correct document that match a given level (H1 - H6)
 
-## Collapsible Bullets
-- Current Version - 0.1.0 <!-- fold -->
-  - Supports headings, tasks, and bullets
-```
-
-![screenshot-2](https://user-images.githubusercontent.com/693981/107279311-e0558500-6a24-11eb-8f16-878fbfd85b36.png)
 
 ## Credits
 
-Thanks **@mleo2003** on Discord for the plugin name! So much better than foldmarker.
+Special thanks **@mleo2003** on Discord for the plugin name.
 
 ## Say Thanks 🙏
 
