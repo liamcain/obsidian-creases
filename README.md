@@ -6,7 +6,7 @@ Tools for efficiently folding markdown sections in Obsidian.
 
 Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along creases** to get your file into the state you want.
 
-## Commands
+## ⚙️ Commands
 
 - **Toggle Crease** – Create/uncrease the current section that you're in
 - **Fold along creases** – Fold all the creased sections of your file
@@ -19,7 +19,7 @@ Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along crease
 **Templates support** – If you use the _Templates_ core plugin, creases included in your template will automatically be folded.
 _Coming Soon_ **Templater support** – Add creases to your [Templater](https://github.com/SilentVoid13/Templater) templates to have content automatically folded.
 
-## Example Workflows (aka "Has this ever happened to you?")
+## ⚡️ Example Workflows (aka "Has this ever happened to you?")
 
 ### Create a "save state" for your folds
 
@@ -44,7 +44,7 @@ Folding all the headings at a given depth can be a tedious process. Well, no lon
 1. Just run "Toggle fold for H3."
 
 
-## Credits
+## 🙏 Credits
 
 Special thanks **@mleo2003** on Discord for the plugin name.
 
