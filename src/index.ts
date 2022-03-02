@@ -1,3 +1,4 @@
+import sortBy from "lodash/sortBy";
 import {
   Editor,
   HeadingCache,
@@ -8,6 +9,7 @@ import {
   TemplaterNewNoteEvent,
   TFile,
 } from "obsidian";
+import { around } from "monkey-around";
 import { creasePlugin } from "./creaseWidget";
 import { hasFold } from "./utils";
 
@@ -56,6 +58,8 @@ export default class CreasesPlugin extends Plugin {
       editorCallback: this.clearCreases.bind(this),
     });
 
+    this.patchCoreTemplatePlugin();
+
     headingLevels.forEach((level) => {
       this.addCommand({
         id: `toggle-fold-heading-level-${level}`,
@@ -80,7 +84,10 @@ export default class CreasesPlugin extends Plugin {
       )
     );
     this.registerEvent(
-      this.app.workspace.on("templater:template-appended", this.onTemplaterAppend, this)
+      this.app.workspace.on("templater:template-appended", this.onTemplateAppend, this)
+    );
+    this.registerEvent(
+      this.app.workspace.on("templates:template-appended", this.onTemplateAppend, this)
     );
 
     this.registerEvent(
@@ -95,6 +102,29 @@ export default class CreasesPlugin extends Plugin {
     );
   }
 
+  patchCoreTemplatePlugin() {
+    const coreTemplatePlugin = this.app.internalPlugins.getPluginById("templates");
+    this.register(
+      around(coreTemplatePlugin.instance.constructor.prototype, {
+        insertTemplate(old: () => void) {
+          return async function (templateFile: TFile) {
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            const oldSelections = view.editor.listSelections();
+            await old.call(this, templateFile);
+            const newSelections = view.editor.listSelections();
+
+            this.app.workspace.trigger("templates:template-appended", {
+              content: this.app.vault.cachedRead(templateFile),
+              oldSelections,
+              newSelections,
+              view,
+            });
+          };
+        },
+      })
+    );
+  }
+
   async onTemplaterNewFile(evt: TemplaterNewNoteEvent) {
     const { file, contents } = evt;
     if (hasFold(contents)) {
@@ -102,26 +132,37 @@ export default class CreasesPlugin extends Plugin {
     }
   }
 
-  async onTemplaterAppend(evt: TemplaterAppendedEvent) {
-    const { view, newSelections, oldSelections, content } = evt;
-
-    if (hasFold(content)) {
-      const foldPositions: IEditorFold[] = [];
-      for (let i = oldSelections[0].head.line; i <= newSelections[0].anchor.line; i++) {
-        const line = view.editor.getLine(i);
-        if (hasFold(line)) {
-          foldPositions.push({
-            from: i,
-            to: i + 1,
-          });
+  async onTemplateAppend(evt: TemplaterAppendedEvent) {
+    const { view, newSelections, oldSelections } = evt;
+    const foldPositions: IEditorFold[] = [];
+    for (let idx = 0; idx < newSelections.length; idx++) {
+      const [start, , , end] = sortBy(
+        [
+          oldSelections[idx].anchor,
+          oldSelections[idx].head,
+          newSelections[idx].anchor,
+          newSelections[idx].head,
+        ],
+        ["line", "ch"]
+      );
+      const content = view.editor.getRange(start, end);
+      if (hasFold(content)) {
+        for (let lineNum = start.line; lineNum <= end.line; lineNum++) {
+          const line = view.editor.getLine(lineNum);
+          if (hasFold(line)) {
+            foldPositions.push({
+              from: lineNum,
+              to: lineNum + 1,
+            });
+          }
         }
       }
-
-      view.currentMode.applyFoldInfo({
-        folds: foldPositions,
-        lines: view.editor.lineCount(),
-      });
     }
+
+    view.currentMode.applyFoldInfo({
+      folds: foldPositions,
+      lines: view.editor.lineCount(),
+    });
   }
 
   onEditorMenu(menu: Menu, editor: Editor, view: MarkdownView) {
@@ -181,8 +222,7 @@ export default class CreasesPlugin extends Plugin {
     const file = foldable.view?.file ?? foldable.file;
     const view = activeView.file === file ? activeView : foldable.view;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingFolds = await (this.app as any).foldManager.load(file);
+    const existingFolds = await this.app.foldManager.load(file);
 
     const foldPositions = [
       ...(existingFolds?.folds ?? []),
