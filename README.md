@@ -14,7 +14,7 @@ Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along crease
 - **Iron out the creases** – Remove all the creases from the current file
 - **Crease the current folds** – Applies a crease to the current folds in the file, allowing you to easily get back to these current folds using **fold along creases**.
 
-## Additional Features
+## ➕ Additional Features
 
 **Templates support** – If you use the _Templates_ core plugin, creases included in your template will automatically be folded.
 _Coming Soon_ **Templater support** – Add creases to your [Templater](https://github.com/SilentVoid13/Templater) templates to have content automatically folded.
