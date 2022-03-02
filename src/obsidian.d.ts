@@ -11,8 +11,8 @@ declare module "obsidian" {
   }
 
   export interface TemplaterAppendedEvent {
-    oldSelection: EditorSelection[];
-    newSelection: EditorSelection[];
+    oldSelections: EditorSelection[];
+    newSelections: EditorSelection[];
     view: MarkdownView;
     content: string;
   }
@@ -24,6 +24,11 @@ declare module "obsidian" {
   export interface Workspace extends Events {
     on(name: "status-bar-updated", callback: () => any, ctx?: any): EventRef;
     on(name: "ribbon-bar-updated", callback: () => any, ctx?: any): EventRef;
+    on(
+      name: "templates:template-appended",
+      callback: (event: TemplaterAppendedEvent) => any,
+      ctx?: any
+    ): EventRef;
     on(
       name: "templater:new-note-from-template",
       callback: (event: TemplaterNewNoteEvent) => any,
