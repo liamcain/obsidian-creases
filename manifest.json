@@ -1,7 +1,7 @@
 {
   "id": "creases",
   "name": "Creases",
-  "description": "Mark sections of markdown to be collapsed by default",
+  "description": "Tools for efficiently folding markdown sections in Obsidian",
   "version": "0.4.0",
   "author": "Liam Cain",
   "authorUrl": "https://github.com/liamcain/",
