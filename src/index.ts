@@ -129,26 +129,28 @@ export default class CreasesPlugin extends Plugin {
       const linePos = editor.posToOffset({ line: lineNum, ch: 0 });
       const foldRegion = foldable(editor.cm.state, linePos, linePos);
       if (foldRegion) {
-        foldPositions.push(foldRegion);
+        const foldStartPos = editor.offsetToPos(foldRegion.from);
+        const foldEndPos = editor.offsetToPos(foldRegion.to);
+        foldPositions.push({
+          from: foldStartPos.line,
+          to: foldEndPos.line,
+        });
       }
     }
     return foldPositions;
   }
 
-  getCurrentFold(editor: Editor, selection: EditorSelection): FoldPosition | null {
-    const from = editor.posToOffset(selection.head);
-    const to = editor.posToOffset(selection.anchor);
-    const foldOffsets = foldable(editor.cm.state, from, to);
+  getRelevantFold(editor: Editor, selection: EditorSelection): FoldPosition | null {
+    const allFolds = this.getAllFoldableLines(editor);
 
-    if (foldOffsets) {
-      const foldStartPos = editor.offsetToPos(foldOffsets.from);
-      return {
-        from: foldStartPos.line,
-        to: foldStartPos.line + 1,
-      };
-    } else {
-      return null;
+    for (let i = allFolds.length - 1; i >= 0; i--) {
+      const fold = allFolds[i];
+      if (fold.from <= selection.anchor.line && selection.anchor.line <= fold.to) {
+        return fold;
+      }
     }
+
+    return null;
   }
 
   async onTemplaterNewFile(evt: TemplaterNewNoteEvent) {
@@ -210,7 +212,7 @@ export default class CreasesPlugin extends Plugin {
     const selections = editor.listSelections();
 
     selections.forEach((selection) => {
-      const currentFold = this.getCurrentFold(editor, selection);
+      const currentFold = this.getRelevantFold(editor, selection);
       if (!currentFold) {
         return;
       }
