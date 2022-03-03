@@ -44,7 +44,7 @@ Folding all the headings at a given depth can be a tedious process. Well, no lon
 1. Just run "Toggle fold for H3."
 
 
-## 🙏 Credits
+## 🎞 Credits
 
 Special thanks **@mleo2003** on Discord for the plugin name.
 

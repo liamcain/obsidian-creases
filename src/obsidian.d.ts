@@ -21,6 +21,10 @@ declare module "obsidian" {
     applyFoldInfo(foldInfo: FoldInfo): void;
   }
 
+  interface Editor {
+    cm: CodeMirror.Editor;
+  }
+
   export interface Workspace extends Events {
     on(name: "status-bar-updated", callback: () => any, ctx?: any): EventRef;
     on(name: "ribbon-bar-updated", callback: () => any, ctx?: any): EventRef;
