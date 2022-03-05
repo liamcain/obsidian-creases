@@ -16,7 +16,7 @@ Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along crease
 
 ## ➕ Additional Features
 
-**Templates support** – If you use the _Templates_ core plugin, creases included in your template will automatically be folded.
+**Templates support** – If you use the _Templates_ core plugin, any creases included in your template will automatically be folded.
 _Coming Soon_ **Templater support** – Add creases to your [Templater](https://github.com/SilentVoid13/Templater) templates to have content automatically folded.
 
 ## ⚡️ Example Workflows (aka "Has this ever happened to you?")
@@ -26,8 +26,8 @@ _Coming Soon_ **Templater support** – Add creases to your [Templater](https://
 If you're working on a long document, you might find yourself folding sections as you go. Now you want to do a "Find" in the fold. Uh oh, it found a match but now all your folded away content is unfolded.
 
 Instead, save your folds as creases:
-1. Run "Crease the current folds" to mark all your current folds as "creased."
-2. Search the document to your hearts content, unfolding without a care in the world.
+1. Run "Crease the current folds" to mark all your current folds as _creased_.
+2. Search the document to your heart's content, unfolding without a care in the world.
 3. Run "Fold along creases" to restore all your folds to exactly how they were before.
 4. _Optional_ Now that you're back to your ideal document origami, you can run "Iron out the creases" to get rid of the fold markers.
 
@@ -35,7 +35,7 @@ Instead, save your folds as creases:
 
 Whether you use the core **Templates** plugin or **Templater**, you might find yourself wishing that some sections start folded since you don't look at them often.
 
-1. In your template file, just make sure that `%% fold %%` appears on the same line as the heading you want folded. You can also run the "Toggle crease" command from within the template to insert the create automatically.
+1. In your template file, just make sure that `%% fold %%` appears on the same line as the heading or list item that you want folded. You can also run the "Toggle crease" command from within the template to insert the crease automatically.
 
 ### You want to fold all the `### Level 3 Heading`s in your document
 
