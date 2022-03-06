@@ -32,7 +32,11 @@ export default class CreasesPlugin extends Plugin {
     this.addCommand({
       id: "fold",
       name: "Fold along creases",
-      editorCallback: (_editor, view) => {
+      checkCallback: (checking: boolean) => {
+        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (checking) {
+          return !!view;
+        }
         this.foldCreases({ view });
       },
     });
@@ -61,13 +65,19 @@ export default class CreasesPlugin extends Plugin {
       this.addCommand({
         id: `toggle-fold-heading-level-${level}`,
         name: `Toggle fold for H${level}`,
-        editorCheckCallback: (checking: boolean, editor: Editor, view: MarkdownView) => {
+        checkCallback: (checking) => {
+          const view = this.app.workspace.getActiveViewOfType(MarkdownView);
           if (checking) {
+            if (!view) {
+              return false;
+            }
+
             const headings =
               this.app.metadataCache.getFileCache(view.file)?.headings ?? [];
             return headings.find((h) => h.level === level) !== undefined;
           }
-          this.toggleFoldForHeadingLevel(editor, view, level);
+
+          this.toggleFoldForHeadingLevel(view, level);
         },
       });
     });
@@ -297,11 +307,7 @@ export default class CreasesPlugin extends Plugin {
     }
   }
 
-  async toggleFoldForHeadingLevel(
-    _editor: Editor,
-    view: MarkdownView,
-    level: number
-  ): Promise<void> {
+  async toggleFoldForHeadingLevel(view: MarkdownView, level: number): Promise<void> {
     const existingFolds = (await this.app.foldManager.load(view.file))?.folds ?? [];
 
     const headingsAtLevel = (
