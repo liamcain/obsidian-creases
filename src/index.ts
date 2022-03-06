@@ -101,6 +101,11 @@ export default class CreasesPlugin extends Plugin {
 
   patchCoreTemplatePlugin() {
     const coreTemplatePlugin = this.app.internalPlugins.getPluginById("templates");
+    if (!coreTemplatePlugin) {
+      // could not find core templates plugin
+      return;
+    }
+
     this.register(
       around(coreTemplatePlugin.instance.constructor.prototype, {
         insertTemplate(old: () => void) {
@@ -123,7 +128,24 @@ export default class CreasesPlugin extends Plugin {
   }
 
   getAllFoldableLines(editor: Editor): FoldPosition[] {
-    /* unused, might want this if I want to try to find the closest foldable */
+    if (this.app.vault.getConfig("legacyEditor")) {
+      const foldOpts = editor.cm.state.foldGutter.options;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const getFoldRegion = (editor.cm as any).foldOption(foldOpts, "rangeFinder");
+
+      const foldPositions: FoldPosition[] = [];
+      for (let lineNum = 0; lineNum <= editor.lastLine(); lineNum++) {
+        const foldRegion = getFoldRegion(editor.cm, CodeMirror.Pos(lineNum, 0));
+        if (foldRegion) {
+          foldPositions.push({
+            from: foldRegion.from.line,
+            to: foldRegion.to.line,
+          });
+        }
+      }
+      return foldPositions;
+    }
+
     const foldPositions: FoldPosition[] = [];
     for (let lineNum = 0; lineNum <= editor.lastLine(); lineNum++) {
       const linePos = editor.posToOffset({ line: lineNum, ch: 0 });
@@ -259,6 +281,9 @@ export default class CreasesPlugin extends Plugin {
 
     const foldPositions = [
       ...(existingFolds?.folds ?? []),
+      // XXX: This won't work if a new file is created in the
+      // background (and doesn't become active). I should rethink
+      // this handler
       ...this.getCreasesFromFile(view.editor),
     ];
 

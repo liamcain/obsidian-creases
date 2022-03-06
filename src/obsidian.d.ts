@@ -45,6 +45,7 @@ declare module "obsidian" {
     ): EventRef;
   }
   interface VaultSettings {
+    legacyEditor: boolean;
     foldHeading: boolean;
     foldIndent: boolean;
     rightToLeft: boolean;
