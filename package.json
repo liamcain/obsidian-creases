@@ -1,6 +1,6 @@
 {
   "name": "obsidian-creases",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Configurable folding within Obsidian",
   "author": "liamcain",
   "main": "main.js",
