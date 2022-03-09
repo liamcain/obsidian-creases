@@ -1,6 +1,7 @@
 import sortBy from "lodash/sortBy";
 import {
   Editor,
+  EditorChange,
   EditorSelection,
   FoldPosition,
   MarkdownView,
@@ -15,19 +16,10 @@ import { around } from "monkey-around";
 import { creasePlugin } from "./creaseWidget";
 import { hasFold } from "./utils";
 
-interface IFoldable {
-  view?: MarkdownView;
-  file?: TFile;
-}
-
 const headingLevels = [1, 2, 3, 4, 5, 6];
 
 export default class CreasesPlugin extends Plugin {
-  private asyncFoldQueue: IFoldable[];
-
   async onload(): Promise<void> {
-    this.asyncFoldQueue = [];
-
     this.registerEditorExtension(creasePlugin(this.app));
     this.addCommand({
       id: "fold",
@@ -37,7 +29,9 @@ export default class CreasesPlugin extends Plugin {
         if (checking) {
           return !!view;
         }
-        this.foldCreases({ view });
+        if (view) {
+          this.foldCreasesForView(view);
+        }
       },
     });
 
@@ -55,7 +49,7 @@ export default class CreasesPlugin extends Plugin {
 
     this.addCommand({
       id: "clear-creases",
-      name: "Iron out the creases",
+      name: "Iron out (clear) the creases",
       editorCallback: this.clearCreases.bind(this),
     });
 
@@ -67,11 +61,11 @@ export default class CreasesPlugin extends Plugin {
         name: `Toggle fold for H${level}`,
         checkCallback: (checking) => {
           const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-          if (checking) {
-            if (!view) {
-              return false;
-            }
+          if (!view) {
+            return false;
+          }
 
+          if (checking) {
             const headings =
               this.app.metadataCache.getFileCache(view.file)?.headings ?? [];
             return headings.find((h) => h.level === level) !== undefined;
@@ -96,17 +90,6 @@ export default class CreasesPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on("templates:template-appended", this.onTemplateAppend, this)
     );
-
-    this.registerEvent(
-      this.app.metadataCache.on("changed", (changedFile: TFile) => {
-        const foldable = this.asyncFoldQueue.filter(
-          (f) => f.file === changedFile || f.view?.file === changedFile
-        );
-        if (foldable.length > 0) {
-          this.foldCreases(foldable[0]);
-        }
-      })
-    );
   }
 
   patchCoreTemplatePlugin() {
@@ -121,6 +104,10 @@ export default class CreasesPlugin extends Plugin {
         insertTemplate(old: () => void) {
           return async function (templateFile: TFile) {
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (!view) {
+              return;
+            }
+
             const oldSelections = view.editor.listSelections();
             await old.call(this, templateFile);
             const newSelections = view.editor.listSelections();
@@ -188,7 +175,7 @@ export default class CreasesPlugin extends Plugin {
   async onTemplaterNewFile(evt: TemplaterNewNoteEvent) {
     const { file, contents } = evt;
     if (hasFold(contents)) {
-      this.asyncFoldQueue.push({ file });
+      this.foldCreasesForFile(file);
     }
   }
 
@@ -267,7 +254,23 @@ export default class CreasesPlugin extends Plugin {
     });
   }
 
-  private getCreasesFromFile(editor: Editor): FoldPosition[] {
+  private async getCreasesFromFile(file: TFile): Promise<FoldPosition[]> {
+    const fileContents = await this.app.vault.cachedRead(file);
+    const fileLines = fileContents.split("\n");
+    const foldPositions: FoldPosition[] = [];
+    for (let lineNum = 0; lineNum <= fileLines.length; lineNum++) {
+      const line = fileLines[lineNum];
+      if (hasFold(line)) {
+        foldPositions.push({
+          from: lineNum,
+          to: lineNum + 1,
+        });
+      }
+    }
+    return foldPositions;
+  }
+
+  private getCreasesFromEditor(editor: Editor): FoldPosition[] {
     const foldPositions: FoldPosition[] = [];
     for (let lineNum = 0; lineNum <= editor.lastLine(); lineNum++) {
       const line = editor.getLine(lineNum);
@@ -281,30 +284,30 @@ export default class CreasesPlugin extends Plugin {
     return foldPositions;
   }
 
-  async foldCreases(foldable: IFoldable) {
-    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-
-    const file = foldable.view?.file ?? foldable.file;
-    const view = activeView.file === file ? activeView : foldable.view;
-
+  async foldCreasesForView(view: MarkdownView) {
+    const file = view.file;
     const existingFolds = await this.app.foldManager.load(file);
 
     const foldPositions = [
       ...(existingFolds?.folds ?? []),
-      // XXX: This won't work if a new file is created in the
-      // background (and doesn't become active). I should rethink
-      // this handler
-      ...this.getCreasesFromFile(view.editor),
+      ...this.getCreasesFromEditor(view.editor),
     ];
 
-    if (view) {
-      view.currentMode.applyFoldInfo({
-        folds: foldPositions,
-        lines: view.editor.lineCount(),
-      });
-    } else {
-      await this.app.foldManager.save(file, foldPositions);
-    }
+    view.currentMode.applyFoldInfo({
+      folds: foldPositions,
+      lines: view.editor.lineCount(),
+    });
+  }
+
+  async foldCreasesForFile(file: TFile) {
+    const existingFolds = await this.app.foldManager.load(file);
+
+    const foldPositions = [
+      ...(existingFolds?.folds ?? []),
+      ...(await this.getCreasesFromFile(file)),
+    ];
+
+    await this.app.foldManager.save(file, foldPositions);
   }
 
   async toggleFoldForHeadingLevel(view: MarkdownView, level: number): Promise<void> {
@@ -341,22 +344,35 @@ export default class CreasesPlugin extends Plugin {
   async creaseCurrentFolds(editor: Editor, view: MarkdownView) {
     const existingFolds = await this.app.foldManager.load(view.file);
 
-    (existingFolds?.folds ?? []).forEach((fold: IEditorFold) => {
-      const from = { line: fold.from, ch: 0 };
+    const changes: EditorChange[] = [];
+    (existingFolds?.folds ?? []).forEach((fold) => {
       const line = editor.getLine(fold.from);
       if (!hasFold(line)) {
-        editor.setLine(from.line, `${line} %% fold %%`);
+        const endOfLinePos = { line: fold.from, ch: line.length };
+        changes.push({
+          text: " %% fold %%",
+          from: endOfLinePos,
+          to: endOfLinePos,
+        });
       }
     });
+    editor.transaction({ changes });
   }
 
   clearCreases(editor: Editor, _view: MarkdownView) {
+    const changes: EditorChange[] = [];
     for (let lineNum = 0; lineNum < editor.lastLine(); lineNum++) {
       const line = editor.getLine(lineNum);
       if (hasFold(line)) {
         const lineWithoutCrease = line.replace("%% fold %%", "").trimEnd();
         editor.setLine(lineNum, lineWithoutCrease);
+        changes.push({
+          text: lineWithoutCrease,
+          from: { line: lineNum, ch: 0 },
+          to: { line: lineNum + 1, ch: 0 },
+        });
       }
     }
+    editor.transaction({ changes });
   }
 }
