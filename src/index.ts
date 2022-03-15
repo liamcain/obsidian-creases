@@ -4,9 +4,12 @@ import {
   EditorChange,
   EditorSelection,
   FoldPosition,
+  HeadingCache,
   MarkdownView,
   Menu,
+  OutlineView,
   Plugin,
+  stripHeading,
   TemplaterAppendedEvent,
   TemplaterNewNoteEvent,
   TFile,
@@ -53,7 +56,11 @@ export default class CreasesPlugin extends Plugin {
       editorCallback: this.clearCreases.bind(this),
     });
 
-    this.patchCoreTemplatePlugin();
+    this.app.workspace.onLayoutReady(() => {
+      this.patchCoreTemplatePlugin();
+      this.patchFileSuggest();
+      this.patchCoreOutlinePlugin();
+    });
 
     headingLevels.forEach((level) => {
       this.addCommand({
@@ -118,6 +125,79 @@ export default class CreasesPlugin extends Plugin {
               newSelections,
               view,
             });
+          };
+        },
+      })
+    );
+  }
+
+  patchCoreOutlinePlugin() {
+    const leaf = this.app.workspace.getLeaf();
+    let outlineView: OutlineView | undefined = undefined;
+    try {
+      outlineView = this.app.viewRegistry.viewByType["outline"](leaf) as OutlineView;
+    } catch (e) {
+      // Outline plugin not enabled
+      return;
+    }
+
+    this.register(
+      around(outlineView.constructor.prototype, {
+        getHeadings(old: () => HeadingCache[]) {
+          return function () {
+            const rawHeadings = old.call(this);
+            return rawHeadings.map((h) => ({
+              ...h,
+              heading: stripHeading(h.heading.replace("%% fold %%", "")),
+            }));
+          };
+        },
+      })
+    );
+  }
+
+  patchFileSuggest() {
+    const suggests = this.app.workspace.editorSuggest.suggests;
+    const fileSuggest = suggests.find((s) => (s as any).mode !== undefined);
+    if (!fileSuggest) {
+      return;
+    }
+
+    this.register(
+      around(fileSuggest.constructor.prototype, {
+        getGlobalBlockSuggestions(old: () => any[]) {
+          return async function (...args: any[]) {
+            const blocks = await old.call(this, ...args);
+            return blocks.map((b: any) => {
+              if (b.node.type !== "heading") {
+                return b;
+              }
+              return {
+                ...b,
+                display: stripHeading(
+                  b.node.data.hProperties.dataHeading.replace("%% fold %%", "")
+                ),
+              };
+            });
+          };
+        },
+        getGlobalHeadingSuggestions(old: () => HeadingCache[]) {
+          return async function (...args: any[]) {
+            const headings = await old.call(this, ...args);
+            return headings.map((h: HeadingCache) => ({
+              ...h,
+              heading: stripHeading(h.heading.replace("%% fold %%", "")),
+            }));
+          };
+        },
+
+        getHeadingSuggestions(old: () => HeadingCache[]) {
+          return async function (...args: any[]) {
+            const headings = await old.call(this, ...args);
+            return headings.map((h: HeadingCache) => ({
+              ...h,
+              heading: stripHeading(h.heading.replace("%% fold %%", "")),
+            }));
           };
         },
       })

@@ -5,6 +5,16 @@ declare module "obsidian" {
     foldManager: FoldManager;
   }
 
+  interface TreeItem {}
+
+  interface TreeView {
+    allItems: TreeItem[];
+  }
+
+  export interface OutlineView {
+    treeView: TreeView;
+  }
+
   export interface TemplaterNewNoteEvent {
     file: TFile;
     contents: string;
@@ -25,6 +35,10 @@ declare module "obsidian" {
     cm: CodeMirror.Editor;
   }
 
+  interface EditorSuggestManager {
+    suggests: EditorSuggest<any>[];
+  }
+
   export interface Workspace extends Events {
     on(name: "status-bar-updated", callback: () => any, ctx?: any): EventRef;
     on(name: "ribbon-bar-updated", callback: () => any, ctx?: any): EventRef;
@@ -43,6 +57,8 @@ declare module "obsidian" {
       callback: (event: TemplaterAppendedEvent) => any,
       ctx?: any
     ): EventRef;
+
+    editorSuggest: EditorSuggestOwner;
   }
   interface VaultSettings {
     legacyEditor: boolean;
