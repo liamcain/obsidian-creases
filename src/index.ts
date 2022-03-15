@@ -146,6 +146,10 @@ export default class CreasesPlugin extends Plugin {
         getHeadings(old: () => HeadingCache[]) {
           return function () {
             const rawHeadings = old.call(this);
+            if (!rawHeadings) {
+              return null;
+            }
+
             return rawHeadings.map((h) => ({
               ...h,
               heading: stripHeading(h.heading.replace("%% fold %%", "")),
@@ -168,6 +172,9 @@ export default class CreasesPlugin extends Plugin {
         getGlobalBlockSuggestions(old: () => any[]) {
           return async function (...args: any[]) {
             const blocks = await old.call(this, ...args);
+            if (!blocks) {
+              return null;
+            }
             return blocks.map((b: any) => {
               if (b.node.type !== "heading") {
                 return b;
@@ -184,6 +191,9 @@ export default class CreasesPlugin extends Plugin {
         getGlobalHeadingSuggestions(old: () => HeadingCache[]) {
           return async function (...args: any[]) {
             const headings = await old.call(this, ...args);
+            if (!headings) {
+              return null;
+            }
             return headings.map((h: HeadingCache) => ({
               ...h,
               heading: stripHeading(h.heading.replace("%% fold %%", "")),
@@ -194,6 +204,9 @@ export default class CreasesPlugin extends Plugin {
         getHeadingSuggestions(old: () => HeadingCache[]) {
           return async function (...args: any[]) {
             const headings = await old.call(this, ...args);
+            if (!headings) {
+              return null;
+            }
             return headings.map((h: HeadingCache) => ({
               ...h,
               heading: stripHeading(h.heading.replace("%% fold %%", "")),
