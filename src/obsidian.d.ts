@@ -5,13 +5,21 @@ declare module "obsidian" {
     foldManager: FoldManager;
   }
 
-  interface TreeItem {}
+  interface TreeItem {
+    setCollapsed(collapse: boolean): Promise<void>;
+    collapsed: boolean;
+    children: TreeItem[];
+    el: HTMLElement;
+    heading: HeadingCache;
+  }
 
   interface TreeView {
+    children: TreeItem[];
     allItems: TreeItem[];
   }
 
-  export interface OutlineView {
+  export interface OutlineView extends View {
+    file: TFile;
     treeView: TreeView;
   }
 
@@ -33,6 +41,7 @@ declare module "obsidian" {
 
   interface MarkdownSubView {
     applyFoldInfo(foldInfo: FoldInfo): void;
+    getFoldInfo(): FoldInfo | null;
   }
 
   interface Editor {

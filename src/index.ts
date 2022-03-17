@@ -20,6 +20,7 @@ import { around } from "monkey-around";
 
 import { creasePlugin } from "./creaseWidget";
 import { hasCrease } from "./utils";
+import { CreasesSettings, CreasesSettingTab, DEFAULT_SETTINGS } from "./settings";
 
 const headingLevels = [1, 2, 3, 4, 5, 6];
 
@@ -38,7 +39,12 @@ function selectionInclude(selection: EditorSelection, fromLine: number, toLine: 
 }
 
 export default class CreasesPlugin extends Plugin {
+  public settings: CreasesSettings;
+
   async onload(): Promise<void> {
+    await this.loadSettings();
+
+    this.registerSettingsTab();
     this.registerEditorExtension(creasePlugin(this.app));
     this.addCommand({
       id: "fold",
@@ -73,18 +79,31 @@ export default class CreasesPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "increase-fold-level-at-cursor",
+      name: "Fold more",
+      editorCallback: this.increaseFoldLevelAtCursor.bind(this),
+    });
+
+    this.addCommand({
+      id: "decrease-fold-level-at-cursor",
+      name: "Fold less",
+      editorCallback: this.decreaseFoldLevelAtCursor.bind(this),
+    });
+
+    this.addCommand({
       id: "increase-fold-level",
-      name: "Increase fold level",
-      editorCallback: this.increaseFoldLevel.bind(this),
+      name: "Increase heading fold level",
+      editorCallback: this.increaseHeadingFoldLevel.bind(this),
     });
 
     this.addCommand({
       id: "decrease-fold-level",
-      name: "Decrease fold level",
-      editorCallback: this.decreaseFoldLevel.bind(this),
+      name: "Decrease heading fold level",
+      editorCallback: this.decreaseHeadingFoldLevel.bind(this),
     });
 
     this.app.workspace.onLayoutReady(() => {
+      this.patchMarkdownView();
       this.patchCoreTemplatePlugin();
       this.patchFileSuggest();
       this.patchCoreOutlinePlugin();
@@ -127,7 +146,7 @@ export default class CreasesPlugin extends Plugin {
     );
   }
 
-  private async increaseFoldLevel(editor: Editor, view: MarkdownView) {
+  private async increaseFoldLevelAtCursor(editor: Editor, view: MarkdownView) {
     const foldInfo = await this.app.foldManager.load(view.file);
     const folds = foldInfo?.folds ?? [];
 
@@ -150,7 +169,7 @@ export default class CreasesPlugin extends Plugin {
     view.onMarkdownFold();
   }
 
-  private async decreaseFoldLevel(editor: Editor, view: MarkdownView) {
+  private async decreaseFoldLevelAtCursor(editor: Editor, view: MarkdownView) {
     const foldInfo = await this.app.foldManager.load(view.file);
     const folds = foldInfo?.folds ?? [];
 
@@ -171,6 +190,99 @@ export default class CreasesPlugin extends Plugin {
       lines: view.editor.lineCount(),
     });
     view.onMarkdownFold();
+  }
+
+  private async increaseHeadingFoldLevel(_editor: Editor, view: MarkdownView) {
+    const foldInfo = view.currentMode.getFoldInfo();
+    const existingFolds = foldInfo?.folds ?? [];
+
+    const headings = this.app.metadataCache.getFileCache(view.file)?.headings ?? [];
+
+    // Find the heading with the highest level that's unfolded
+    let maxUnfoldedLevel = 1;
+    for (const heading of headings) {
+      if (!existingFolds.find((f) => f.from === heading.position.start.line)) {
+        maxUnfoldedLevel = Math.max(maxUnfoldedLevel, heading.level);
+      }
+    }
+
+    const headingsAtLevel = headings.filter((h) => h.level === maxUnfoldedLevel);
+    const folds = [
+      ...existingFolds,
+      ...headingsAtLevel.map((h) => ({
+        from: h.position.start.line,
+        to: h.position.end.line,
+      })),
+    ];
+
+    view.currentMode.applyFoldInfo({
+      folds,
+      lines: view.editor.lineCount(),
+    });
+    view.onMarkdownFold();
+  }
+
+  private async decreaseHeadingFoldLevel(_editor: Editor, view: MarkdownView) {
+    const foldInfo = view.currentMode.getFoldInfo();
+    const existingFolds = foldInfo?.folds ?? [];
+
+    const headings = this.app.metadataCache.getFileCache(view.file)?.headings ?? [];
+
+    let maxFoldLevel = Math.max(...headings.map((h) => h.level));
+    for (const heading of headings) {
+      if (existingFolds.find((f) => f.from === heading.position.start.line)) {
+        maxFoldLevel = Math.min(maxFoldLevel, heading.level);
+      }
+    }
+
+    // Remove any folds with a fold level < maxFoldLevel
+    const excludedHeadingPositions = new Set(
+      headings.filter((h) => h.level <= maxFoldLevel).map((h) => h.position.start.line)
+    );
+    const folds = existingFolds.filter(
+      (fold) => !excludedHeadingPositions.has(fold.from)
+    );
+
+    view.currentMode.applyFoldInfo({
+      folds,
+      lines: view.editor.lineCount(),
+    });
+    view.onMarkdownFold();
+  }
+
+  private patchMarkdownView() {
+    const plugin = this as CreasesPlugin;
+    const app = this.app;
+    const leaf = this.app.workspace.getLeaf();
+
+    this.register(
+      around(leaf.view.constructor.prototype, {
+        onMarkdownFold(old: () => void) {
+          return async function () {
+            await old.call(this);
+
+            if (plugin.settings.syncOutlineView === "none") {
+              return;
+            }
+            const existingFolds = (this as MarkdownView).currentMode.getFoldInfo();
+
+            const outlineViewLeaf = app.workspace.getLeavesOfType("outline")[0];
+            if (outlineViewLeaf) {
+              const outlineView = outlineViewLeaf.view as OutlineView;
+              if (outlineView.file === this.file) {
+                const treeView = outlineView.treeView;
+                for (const item of treeView.allItems) {
+                  const isFolded = !!existingFolds?.folds.find(
+                    (fold) => fold.from === item.heading.position.start.line
+                  );
+                  item.setCollapsed(isFolded);
+                }
+              }
+            }
+          };
+        },
+      })
+    );
   }
 
   patchCoreTemplatePlugin() {
@@ -214,6 +326,30 @@ export default class CreasesPlugin extends Plugin {
       // Outline plugin not enabled
       return;
     }
+
+    // this.register(
+    //   around(outlineView.treeView.constructor.prototype, {
+    //     renderOutline(old: () => void) {
+    //       return function (headings: HeadingCache[]) {
+    //         old.call(this, headings);
+    //         const treeView = this as TreeView;
+    //         this.childrenEl.addEventListener("click", (e) => {
+    //           if (e.target.classList.contains("right-triangle")) {
+    //             const folds = treeView.allItems.map((item) => ({
+    //               from: item.heading.position.start.line,
+    //               to: item.heading.position.end.line,
+    //             }));
+    //             const activeView = app.workspace.getActiveViewOfType(MarkdownView);
+    //             activeView.currentMode.applyFoldInfo({
+    //               folds,
+    //               lines: activeView.editor.lineCount(),
+    //             });
+    //           }
+    //         });
+    //       };
+    //     },
+    //   })
+    // );
 
     this.register(
       around(outlineView.constructor.prototype, {
@@ -346,14 +482,14 @@ export default class CreasesPlugin extends Plugin {
     return null;
   }
 
-  async onTemplaterNewFile(evt: TemplaterNewNoteEvent) {
+  async onTemplaterNewFile(evt: TemplaterNewNoteEvent): void {
     const { file, contents } = evt;
     if (hasCrease(contents)) {
       this.foldCreasesForFile(file);
     }
   }
 
-  async onTemplateAppend(evt: TemplaterAppendedEvent) {
+  async onTemplateAppend(evt: TemplaterAppendedEvent): void {
     const { view, newSelections, oldSelections } = evt;
     const foldPositions: FoldPosition[] = [];
     for (let idx = 0; idx < newSelections.length; idx++) {
@@ -386,7 +522,7 @@ export default class CreasesPlugin extends Plugin {
     });
   }
 
-  onEditorMenu(menu: Menu, editor: Editor, view: MarkdownView) {
+  onEditorMenu(menu: Menu, editor: Editor, view: MarkdownView): void {
     if (!editor.getSelection()) {
       return;
     }
@@ -458,9 +594,8 @@ export default class CreasesPlugin extends Plugin {
     return foldPositions;
   }
 
-  async foldCreasesForView(view: MarkdownView) {
-    const file = view.file;
-    const existingFolds = await this.app.foldManager.load(file);
+  async foldCreasesForView(view: MarkdownView): void {
+    const existingFolds = view.currentMode.getFoldInfo();
 
     const foldPositions = [
       ...(existingFolds?.folds ?? []),
@@ -473,7 +608,7 @@ export default class CreasesPlugin extends Plugin {
     });
   }
 
-  async foldCreasesForFile(file: TFile) {
+  async foldCreasesForFile(file: TFile): void {
     const existingFolds = await this.app.foldManager.load(file);
 
     const foldPositions = [
@@ -484,8 +619,8 @@ export default class CreasesPlugin extends Plugin {
     await this.app.foldManager.save(file, foldPositions);
   }
 
-  async toggleFoldForHeadingLevel(view: MarkdownView, level: number): Promise<void> {
-    const existingFolds = (await this.app.foldManager.load(view.file))?.folds ?? [];
+  toggleFoldForHeadingLevel(view: MarkdownView, level: number): void {
+    const existingFolds = view.currentMode.getFoldInfo()?.folds ?? [];
 
     const headingsAtLevel = (
       this.app.metadataCache.getFileCache(view.file)?.headings || []
@@ -517,8 +652,8 @@ export default class CreasesPlugin extends Plugin {
     }
   }
 
-  async creaseCurrentFolds(editor: Editor, view: MarkdownView) {
-    const existingFolds = await this.app.foldManager.load(view.file);
+  creaseCurrentFolds(editor: Editor, view: MarkdownView): void {
+    const existingFolds = view.currentMode.getFoldInfo();
 
     const changes: EditorChange[] = [];
     (existingFolds?.folds ?? []).forEach((fold) => {
@@ -535,7 +670,7 @@ export default class CreasesPlugin extends Plugin {
     editor.transaction({ changes });
   }
 
-  clearCreases(editor: Editor, _view: MarkdownView) {
+  clearCreases(editor: Editor, _view: MarkdownView): void {
     const changes: EditorChange[] = [];
     for (let lineNum = 0; lineNum < editor.lastLine(); lineNum++) {
       const line = editor.getLine(lineNum);
@@ -550,5 +685,17 @@ export default class CreasesPlugin extends Plugin {
       }
     }
     editor.transaction({ changes });
+  }
+
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings(): Promise<void> {
+    await this.saveData(this.settings);
+  }
+
+  registerSettingsTab() {
+    this.addSettingTab(new CreasesSettingTab(this.app, this));
   }
 }
