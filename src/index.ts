@@ -1,4 +1,5 @@
 import sortBy from "lodash/sortBy";
+import remove from "lodash/remove";
 import {
   Editor,
   EditorChange,
@@ -16,10 +17,25 @@ import {
 } from "obsidian";
 import { foldable } from "@codemirror/language";
 import { around } from "monkey-around";
+
 import { creasePlugin } from "./creaseWidget";
-import { hasFold } from "./utils";
+import { hasCrease } from "./utils";
 
 const headingLevels = [1, 2, 3, 4, 5, 6];
+
+function selectionInclude(selection: EditorSelection, fromLine: number, toLine: number) {
+  const { anchor, head } = selection;
+
+  // selection anchor is between
+  if (anchor.line >= fromLine && anchor.line <= toLine) return true;
+  // selection head is between
+  if (head.line >= fromLine && head.line <= toLine) return true;
+  // selection envelopes (head < anchor)
+  if (head.line < fromLine && anchor.line > toLine) return true;
+  // selection envelopes (head > anchor)
+  if (anchor.line < fromLine && head.line > toLine) return true;
+  return false;
+}
 
 export default class CreasesPlugin extends Plugin {
   async onload(): Promise<void> {
@@ -54,6 +70,18 @@ export default class CreasesPlugin extends Plugin {
       id: "clear-creases",
       name: "Iron out (clear) the creases",
       editorCallback: this.clearCreases.bind(this),
+    });
+
+    this.addCommand({
+      id: "increase-fold-level",
+      name: "Increase fold level",
+      editorCallback: this.increaseFoldLevel.bind(this),
+    });
+
+    this.addCommand({
+      id: "decrease-fold-level",
+      name: "Decrease fold level",
+      editorCallback: this.decreaseFoldLevel.bind(this),
     });
 
     this.app.workspace.onLayoutReady(() => {
@@ -97,6 +125,52 @@ export default class CreasesPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on("templates:template-appended", this.onTemplateAppend, this)
     );
+  }
+
+  private async increaseFoldLevel(editor: Editor, view: MarkdownView) {
+    const foldInfo = await this.app.foldManager.load(view.file);
+    const folds = foldInfo?.folds ?? [];
+
+    const selections = editor.listSelections();
+    selections.forEach((selection) => {
+      const parentFolds = this.getAllParentFolds(editor, selection);
+      for (let i = parentFolds.length - 1; i >= 0; i--) {
+        const parentFold = parentFolds[i];
+        if (!folds.find((fold) => fold.from === parentFold.from)) {
+          folds.push(parentFold);
+          break;
+        }
+      }
+    });
+
+    view.currentMode.applyFoldInfo({
+      folds,
+      lines: view.editor.lineCount(),
+    });
+    view.onMarkdownFold();
+  }
+
+  private async decreaseFoldLevel(editor: Editor, view: MarkdownView) {
+    const foldInfo = await this.app.foldManager.load(view.file);
+    const folds = foldInfo?.folds ?? [];
+
+    const selections = editor.listSelections();
+    selections.forEach((selection) => {
+      const parentFolds = this.getAllParentFolds(editor, selection);
+      for (let i = 0; i < parentFolds.length; i++) {
+        const parentFold = parentFolds[i];
+        if (folds.find((fold) => fold.from === parentFold.from)) {
+          remove(folds, (f) => f.from === parentFold.from);
+          break;
+        }
+      }
+    });
+
+    view.currentMode.applyFoldInfo({
+      folds,
+      lines: view.editor.lineCount(),
+    });
+    view.onMarkdownFold();
   }
 
   patchCoreTemplatePlugin() {
@@ -217,6 +291,13 @@ export default class CreasesPlugin extends Plugin {
     );
   }
 
+  getAllParentFolds(editor: Editor, selection: EditorSelection): FoldPosition[] {
+    const allFoldsInFile = this.getAllFoldableLines(editor);
+    return allFoldsInFile.filter((fold) =>
+      selectionInclude(selection, fold.from, fold.to)
+    );
+  }
+
   getAllFoldableLines(editor: Editor): FoldPosition[] {
     if (this.app.vault.getConfig("legacyEditor")) {
       const foldOpts = editor.cm.state.foldGutter.options;
@@ -267,7 +348,7 @@ export default class CreasesPlugin extends Plugin {
 
   async onTemplaterNewFile(evt: TemplaterNewNoteEvent) {
     const { file, contents } = evt;
-    if (hasFold(contents)) {
+    if (hasCrease(contents)) {
       this.foldCreasesForFile(file);
     }
   }
@@ -286,10 +367,10 @@ export default class CreasesPlugin extends Plugin {
         ["line", "ch"]
       );
       const content = view.editor.getRange(start, end);
-      if (hasFold(content)) {
+      if (hasCrease(content)) {
         for (let lineNum = start.line; lineNum <= end.line; lineNum++) {
           const line = view.editor.getLine(lineNum);
-          if (hasFold(line)) {
+          if (hasCrease(line)) {
             foldPositions.push({
               from: lineNum,
               to: lineNum + 1,
@@ -332,7 +413,7 @@ export default class CreasesPlugin extends Plugin {
       const lineNum = currentFold.from;
       const line = editor.getLine(lineNum);
 
-      if (hasFold(line)) {
+      if (hasCrease(line)) {
         // Remove crease
         const from = { line: lineNum, ch: 0 };
         const to = { line: lineNum, ch: line.length };
@@ -353,7 +434,7 @@ export default class CreasesPlugin extends Plugin {
     const foldPositions: FoldPosition[] = [];
     for (let lineNum = 0; lineNum <= fileLines.length; lineNum++) {
       const line = fileLines[lineNum];
-      if (hasFold(line)) {
+      if (hasCrease(line)) {
         foldPositions.push({
           from: lineNum,
           to: lineNum + 1,
@@ -367,7 +448,7 @@ export default class CreasesPlugin extends Plugin {
     const foldPositions: FoldPosition[] = [];
     for (let lineNum = 0; lineNum <= editor.lastLine(); lineNum++) {
       const line = editor.getLine(lineNum);
-      if (hasFold(line)) {
+      if (hasCrease(line)) {
         foldPositions.push({
           from: lineNum,
           to: lineNum + 1,
@@ -407,7 +488,7 @@ export default class CreasesPlugin extends Plugin {
     const existingFolds = (await this.app.foldManager.load(view.file))?.folds ?? [];
 
     const headingsAtLevel = (
-      this.app.metadataCache.getFileCache(view.file).headings || []
+      this.app.metadataCache.getFileCache(view.file)?.headings || []
     ).filter((heading) => heading.level === level);
     const headingLineNums = new Set(headingsAtLevel.map((h) => h.position.start.line));
     const firstHeadingPos = headingsAtLevel[0].position.start;
@@ -418,6 +499,7 @@ export default class CreasesPlugin extends Plugin {
         folds: existingFolds.filter((fold) => !headingLineNums.has(fold.from)),
         lines: view.editor.lineCount(),
       });
+      view.onMarkdownFold();
     } else {
       const foldPositions = [
         ...existingFolds,
@@ -431,6 +513,7 @@ export default class CreasesPlugin extends Plugin {
         folds: foldPositions,
         lines: view.editor.lineCount(),
       });
+      view.onMarkdownFold();
     }
   }
 
@@ -440,7 +523,7 @@ export default class CreasesPlugin extends Plugin {
     const changes: EditorChange[] = [];
     (existingFolds?.folds ?? []).forEach((fold) => {
       const line = editor.getLine(fold.from);
-      if (!hasFold(line)) {
+      if (!hasCrease(line)) {
         const endOfLinePos = { line: fold.from, ch: line.length };
         changes.push({
           text: " %% fold %%",
@@ -456,7 +539,7 @@ export default class CreasesPlugin extends Plugin {
     const changes: EditorChange[] = [];
     for (let lineNum = 0; lineNum < editor.lastLine(); lineNum++) {
       const line = editor.getLine(lineNum);
-      if (hasFold(line)) {
+      if (hasCrease(line)) {
         const lineWithoutCrease = line.replace("%% fold %%", "").trimEnd();
         editor.setLine(lineNum, lineWithoutCrease);
         changes.push({

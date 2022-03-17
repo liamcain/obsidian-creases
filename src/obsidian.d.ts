@@ -27,6 +27,10 @@ declare module "obsidian" {
     content: string;
   }
 
+  interface MarkdownView {
+    onMarkdownFold(): void;
+  }
+
   interface MarkdownSubView {
     applyFoldInfo(foldInfo: FoldInfo): void;
   }
