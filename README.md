@@ -16,14 +16,14 @@ Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along crease
 
 ### Fold Levels
 
-Creases also borrows the concept of a "fold level" from vim. The fold level is equal to the heading level that you have folded. So if have you have your `## Heading Level 2` headings folded, _decreasing_ the fold level will unfold all headings up to `# Heading Level 1`. _Increasing_ the fold level will unfold up to your `### Heading Level 3`.
+Creases also borrows the concept of a "fold level" from vim. The fold level is inferred from the current folds in the note. If have you have your `## Heading Level 2` headings folded, _decreasing_ the fold level will unfold all headings up to `# Heading Level 1`. _Increasing_ the fold level will unfold up to your `### Heading Level 3`.
 
 - **Increase heading fold level** - Increase the fold level by 1
 - **Decrease heading fold level** - Decrease the fold level by 1
 
 ### Working with "creases"
 
-- **Toggle Crease** – Create/uncrease the current section that you're in
+- **Toggle Crease** – Crease/uncrease the current section that you're in
 - **Crease the current folds** – Applies a crease to the current folds in the file, allowing you to easily get back to these current folds using **fold along creases**.
 - **Fold along creases** – Fold all the creased sections of your file
 - **Iron out the creases** – Remove all the creases from the current file
