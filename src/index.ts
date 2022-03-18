@@ -192,7 +192,7 @@ export default class CreasesPlugin extends Plugin {
     view.onMarkdownFold();
   }
 
-  private async increaseHeadingFoldLevel(_editor: Editor, view: MarkdownView) {
+  private async decreaseHeadingFoldLevel(_editor: Editor, view: MarkdownView) {
     const foldInfo = view.currentMode.getFoldInfo();
     const existingFolds = foldInfo?.folds ?? [];
 
@@ -222,7 +222,7 @@ export default class CreasesPlugin extends Plugin {
     view.onMarkdownFold();
   }
 
-  private async decreaseHeadingFoldLevel(_editor: Editor, view: MarkdownView) {
+  private async increaseHeadingFoldLevel(_editor: Editor, view: MarkdownView) {
     const foldInfo = view.currentMode.getFoldInfo();
     const existingFolds = foldInfo?.folds ?? [];
 
