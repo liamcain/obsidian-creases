@@ -28,6 +28,11 @@ declare module "obsidian" {
     contents: string;
   }
 
+  export interface TemplaterOverwriteEvent {
+    file: TFile;
+    contents: string;
+  }
+
   export interface TemplaterAppendedEvent {
     oldSelections: EditorSelection[];
     newSelections: EditorSelection[];
@@ -70,6 +75,11 @@ declare module "obsidian" {
       callback: (event: TemplaterAppendedEvent) => any,
       ctx?: any
     ): EventRef;
+    on(
+      name: "templater:overwrite-file",
+      callback: (event: TemplaterOverwriteEvent) => any,
+      ctx?: any
+    ): EventRef;
 
     editorSuggest: EditorSuggestOwner;
   }
@@ -95,7 +105,7 @@ declare module "obsidian" {
 
   export interface FoldManager {
     load(file: TFile): Promise<FoldInfo>;
-    save(file: TFile, folds: FoldPosition[]): Promise<void>;
+    save(file: TFile, foldInfo: FoldInfo): Promise<void>;
   }
 
   interface Vault {
