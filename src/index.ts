@@ -105,7 +105,6 @@ export default class CreasesPlugin extends Plugin {
 
     this.app.workspace.onLayoutReady(() => {
       this.registerEvent(this.app.vault.on("create", this.onNewFile.bind(this)));
-      this.registerEvent(this.app.workspace.on("file-open", this.onFileOpen.bind(this)));
       this.patchMarkdownView();
       this.patchCoreTemplatePlugin();
       this.patchFileSuggest();
@@ -186,12 +185,6 @@ export default class CreasesPlugin extends Plugin {
       if (this.settings.templateCreasesBehavior === "fold-and-clear") {
         this.app.vault.modify(file, contents.replace(new RegExp(CREASE_REGEX, "g"), ""));
       }
-    }
-  }
-
-  private onFileOpen(file: TFile | null): void {
-    if (file && this.settings.onOpenCreasesBehavior === "always-fold") {
-      this.foldCreasesForFile(file);
     }
   }
 
@@ -367,6 +360,14 @@ export default class CreasesPlugin extends Plugin {
                   item.setCollapsed(isFolded);
                 }
               }
+            }
+          };
+        },
+        onLoadFile(old: (file: TFile) => void) {
+          return async function (file: TFile) {
+            await old.call(this, file);
+            if (file && plugin.settings.onOpenCreasesBehavior === "always-fold") {
+              plugin.foldCreasesForFile(file);
             }
           };
         },
