@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import CreasesPlugin from "./index";
+import CreasesPlugin from "./main";
 
 type TemplateCreasesBehaviorType = "start-folded" | "start-unfolded" | "fold-and-clear";
 type OnOpenCreasesBehaviorType = "always-fold" | "preserve-fold-state";

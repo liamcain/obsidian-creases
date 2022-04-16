@@ -746,11 +746,10 @@ export default class CreasesPlugin extends Plugin {
     for (let lineNum = 0; lineNum < editor.lastLine(); lineNum++) {
       const line = editor.getLine(lineNum);
       if (hasCrease(line)) {
-        const lineWithoutCrease = line.replace(CREASE_REGEX, "").trimEnd();
         changes.push({
-          text: lineWithoutCrease,
+          text: line.replace(CREASE_REGEX, ""),
           from: { line: lineNum, ch: 0 },
-          to: { line: lineNum + 1, ch: 0 },
+          to: { line: lineNum, ch: line.length },
         });
       }
     }

@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "dev": "node esbuild.config.mjs",
-    "build": "yarn run lint && node esbuild.config.mjs production"
+    "dev": "node --experimental-json-modules esbuild.config.mjs",
+    "build": "yarn run lint && node --experimental-json-modules esbuild.config.mjs production"
   },
   "peerDependencies": {
     "@codemirror/language": "0.19.x",
@@ -26,6 +26,7 @@
     "@codemirror/basic-setup": "^0.19.0",
     "@codemirror/buildhelper": "^0.1.0",
     "@codemirror/lang-css": "^0.19.3",
+    "dotenv": "16.0.0",
     "esbuild": "0.13.12",
     "@types/node": "^16.11.6",
     "@types/lodash": "4.14.179",
