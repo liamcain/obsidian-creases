@@ -7,3 +7,7 @@
 .cm-creases-icon:hover {
   opacity: 0.8;
 }
+
+.tree-item-inner p {
+  margin: 0;
+}

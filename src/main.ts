@@ -6,6 +6,7 @@ import {
   EditorSelection,
   FoldPosition,
   HeadingCache,
+  MarkdownRenderer,
   MarkdownView,
   Menu,
   OutlineView,
@@ -408,6 +409,7 @@ export default class CreasesPlugin extends Plugin {
   }
 
   private patchCoreOutlinePlugin() {
+    const plugin = this as CreasesPlugin;
     const leaf = this.app.workspace.getLeaf();
     let outlineView: OutlineView | undefined = undefined;
     try {
@@ -417,43 +419,75 @@ export default class CreasesPlugin extends Plugin {
       return;
     }
 
-    // this.register(
-    //   around(outlineView.treeView.constructor.prototype, {
-    //     renderOutline(old: () => void) {
-    //       return function (headings: HeadingCache[]) {
-    //         old.call(this, headings);
-    //         const treeView = this as TreeView;
-    //         this.childrenEl.addEventListener("click", (e) => {
-    //           if (e.target.classList.contains("right-triangle")) {
-    //             const folds = treeView.allItems.map((item) => ({
-    //               from: item.heading.position.start.line,
-    //               to: item.heading.position.end.line,
-    //             }));
-    //             const activeView = app.workspace.getActiveViewOfType(MarkdownView);
-    //             activeView.currentMode.applyFoldInfo({
-    //               folds,
-    //               lines: activeView.editor.lineCount(),
-    //             });
-    //           }
-    //         });
-    //       };
-    //     },
-    //   })
-    // );
+    const treeView = outlineView.treeView;
+    const tempEl = createDiv();
+    const tempTreeView = treeView.constructor(tempEl);
+    tempTreeView.renderOutline([
+      {
+        heading: "test",
+        level: 1,
+      },
+    ]);
 
     this.register(
-      around(outlineView.constructor.prototype, {
-        getHeadings(old: () => HeadingCache[]) {
-          return function () {
-            const rawHeadings = old.call(this);
-            if (!rawHeadings) {
-              return null;
+      around(tempTreeView.allItems[0].constructor.prototype, {
+        onCollapseClick(old: () => void) {
+          return function (e: MouseEvent) {
+            old.call(this, e);
+
+            if (plugin.settings.syncOutlineView !== "bidirectional") {
+              return;
             }
 
-            return rawHeadings.map((h) => ({
-              ...h,
-              heading: stripHeading(h.heading.replace(CREASE_REGEX, "")),
-            }));
+            const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view) {
+              const existingFolds = view.currentMode.getFoldInfo()?.folds ?? [];
+              if (this.collapsed) {
+                const foldPositions = [
+                  ...existingFolds,
+                  {
+                    from: this.heading.position.start.line,
+                    to: this.heading.position.start.line + 1,
+                  },
+                ];
+                view.currentMode.applyFoldInfo({
+                  folds: foldPositions,
+                  lines: view.editor.lineCount(),
+                });
+              } else {
+                view.currentMode.applyFoldInfo({
+                  folds: existingFolds.filter(
+                    (fold) => this.heading.position.start.line !== fold.from
+                  ),
+                  lines: view.editor.lineCount(),
+                });
+              }
+              view.onMarkdownFold();
+            }
+          };
+        },
+        render(old: () => void) {
+          return function () {
+            old.call(this);
+            const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view) {
+              this.innerEl.empty();
+              MarkdownRenderer.renderMarkdown(
+                this.heading.heading,
+                this.innerEl,
+                view.file.path,
+                this
+              );
+
+              const existingFolds = view.currentMode.getFoldInfo()?.folds ?? [];
+              if (
+                existingFolds.find(
+                  (fold) => fold.from === this.heading.position.start.line
+                )
+              ) {
+                this.setCollapsed(true);
+              }
+            }
           };
         },
       })
@@ -606,7 +640,7 @@ export default class CreasesPlugin extends Plugin {
         // Remove crease
         const from = { line: lineNum, ch: 0 };
         const to = { line: lineNum, ch: line.length };
-        const lineWithoutCrease = line.replace("%% fold %%", "").trimEnd();
+        const lineWithoutCrease = line.replace(CREASE_REGEX, "").trimEnd();
         editor.replaceRange(lineWithoutCrease, from, to);
       } else {
         // Add Crease

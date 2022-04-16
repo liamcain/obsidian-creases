@@ -3,7 +3,7 @@ import CreasesPlugin from "./main";
 
 type TemplateCreasesBehaviorType = "start-folded" | "start-unfolded" | "fold-and-clear";
 type OnOpenCreasesBehaviorType = "always-fold" | "preserve-fold-state";
-type OutlineSyncType = "from-editor-to-outline" | "none";
+type OutlineSyncType = "from-editor-to-outline" | "bidirectional" | "none";
 export interface CreasesSettings {
   onOpenCreasesBehavior: OnOpenCreasesBehaviorType;
   templateCreasesBehavior: TemplateCreasesBehaviorType;
@@ -38,6 +38,7 @@ export class CreasesSettingTab extends PluginSettingTab {
       .addDropdown((cb) => {
         cb.addOptions({
           "from-editor-to-outline": "From editor to outline",
+          bidirectional: "Bidirectionally",
           none: "None",
         });
         cb.setValue(this.plugin.settings.syncOutlineView);
