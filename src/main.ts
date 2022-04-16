@@ -40,6 +40,8 @@ function selectionInclude(selection: EditorSelection, fromLine: number, toLine: 
   return false;
 }
 
+const BLOCK_ID_REGEX = /\^([a-zA-Z0-9-]+)$/;
+
 export default class CreasesPlugin extends Plugin {
   public settings: CreasesSettings;
 
@@ -644,9 +646,14 @@ export default class CreasesPlugin extends Plugin {
         editor.replaceRange(lineWithoutCrease, from, to);
       } else {
         // Add Crease
-        const from = { line: lineNum, ch: line.length };
-        const to = { line: lineNum, ch: line.length };
-        editor.replaceRange(" %% fold %%", from, to);
+        let pos = line.length;
+        const blockIdExp = BLOCK_ID_REGEX.exec(line);
+        if (blockIdExp) {
+          pos = blockIdExp.index - 1;
+        }
+        const from = { line: lineNum, ch: pos };
+        const to = { line: lineNum, ch: pos };
+        editor.replaceRange(" %% fold %% ", from, to);
       }
     });
   }
