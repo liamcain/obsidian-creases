@@ -1,4 +1,4 @@
-# Creases :shirt:
+# Creases 👕
 
 Tools for efficiently folding markdown sections in Obsidian.
 
@@ -40,6 +40,7 @@ Creases also borrows the concept of a "fold level" from vim. The fold level is i
 If you're working on a long document, you might find yourself folding sections as you go. Now you want to do a "Find" in the fold. Uh oh, it found a match but now all your folded away content is unfolded.
 
 Instead, save your folds as creases:
+
 1. Run "Crease the current folds" to mark all your current folds as _creased_.
 2. Search the document to your heart's content, unfolding without a care in the world.
 3. Run "Fold along creases" to restore all your folds to exactly how they were before.
@@ -56,7 +57,6 @@ Whether you use the core **Templates** plugin or **Templater**, you might find y
 Folding all the headings at a given depth can be a tedious process. Well, no longer.
 
 1. Just run "Toggle fold for H3."
-
 
 ## 🎞 Credits
 
