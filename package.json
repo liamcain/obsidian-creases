@@ -9,6 +9,7 @@
     "lint": "eslint . --ext .ts",
     "dev": "node --experimental-json-modules esbuild.config.mjs",
     "build": "yarn run lint && node --experimental-json-modules esbuild.config.mjs production",
+    "build:ci": "node --experimental-json-modules esbuild.config.mjs production",
     "release": "standard-version"
   },
   "standard-version": {
