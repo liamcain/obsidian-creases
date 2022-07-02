@@ -21,6 +21,8 @@ declare module "obsidian" {
   export interface OutlineView extends View {
     file: TFile;
     treeView: TreeView;
+    update: () => void;
+    close: () => void;
   }
 
   export interface TemplaterNewNoteEvent {
@@ -116,6 +118,7 @@ declare module "obsidian" {
   export interface PluginInstance {
     id: string;
   }
+
   export interface ViewRegistry {
     viewByType: Record<string, (leaf: WorkspaceLeaf) => unknown>;
     isExtensionRegistered(extension: string): boolean;

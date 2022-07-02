@@ -4,6 +4,7 @@ import {
   Editor,
   EditorChange,
   EditorSelection,
+  EventRef,
   FoldPosition,
   HeadingCache,
   MarkdownRenderer,
@@ -16,6 +17,7 @@ import {
   TemplaterAppendedEvent,
   TemplaterNewNoteEvent,
   TFile,
+  WorkspaceLeaf,
 } from "obsidian";
 import { foldable } from "@codemirror/language";
 import { around } from "monkey-around";
@@ -44,6 +46,7 @@ const BLOCK_ID_REGEX = /\^([a-zA-Z0-9-]+)$/;
 
 export default class CreasesPlugin extends Plugin {
   public settings: CreasesSettings;
+  private onFileOpenListener: EventRef;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -107,11 +110,10 @@ export default class CreasesPlugin extends Plugin {
     });
 
     this.app.workspace.onLayoutReady(() => {
+      this.patchCoreOutlinePlugin();
       this.registerEvent(this.app.vault.on("create", this.onNewFile.bind(this)));
-      this.patchMarkdownView();
       this.patchCoreTemplatePlugin();
       this.patchFileSuggest();
-      this.patchCoreOutlinePlugin();
     });
 
     headingLevels.forEach((level) => {
@@ -134,6 +136,9 @@ export default class CreasesPlugin extends Plugin {
         },
       });
     });
+
+    this.onFileOpenListener = this.app.workspace.on('file-open', this.onFileOpen, this);
+    this.registerEvent(this.onFileOpenListener);
 
     this.registerEvent(this.app.workspace.on("editor-menu", this.onEditorMenu, this));
     this.registerEvent(
@@ -175,6 +180,13 @@ export default class CreasesPlugin extends Plugin {
       lines: view.editor.lineCount(),
     });
     view.onMarkdownFold();
+  }
+
+  private onFileOpen(_file: TFile): void {
+    if (this.app.workspace.activeLeaf) {
+      this.patchMarkdownView();
+      this.app.workspace.offref(this.onFileOpenListener);
+    }
   }
 
   private async handleNewFile(file: TFile, contents: string): Promise<void> {
@@ -337,8 +349,12 @@ export default class CreasesPlugin extends Plugin {
 
   private patchMarkdownView() {
     const plugin = this as CreasesPlugin;
-    const app = this.app;
-    const leaf = this.app.workspace.getLeaf();
+    const { workspace } = this.app;
+    const leaf = workspace.activeLeaf;
+
+    if (!leaf) {
+      return;
+    }
 
     this.register(
       around(leaf.view.constructor.prototype, {
@@ -351,7 +367,7 @@ export default class CreasesPlugin extends Plugin {
             }
             const existingFolds = (this as MarkdownView).currentMode.getFoldInfo();
 
-            const outlineViewLeaf = app.workspace.getLeavesOfType("outline")[0];
+            const outlineViewLeaf = workspace.getLeavesOfType("outline")[0];
             if (outlineViewLeaf) {
               const outlineView = outlineViewLeaf.view as OutlineView;
               if (outlineView.file === this.file) {
@@ -410,9 +426,22 @@ export default class CreasesPlugin extends Plugin {
     );
   }
 
+  private getAnyLeaf(): WorkspaceLeaf {
+    let leaf: WorkspaceLeaf | null = this.app.workspace.activeLeaf;
+    if (leaf) return leaf;
+
+    this.app.workspace.iterateAllLeaves(l => {
+      if (!leaf) {
+        leaf = l;
+      }
+    });
+    return leaf!;
+  }
+
   private patchCoreOutlinePlugin() {
+    const leaf = this.getAnyLeaf();
+
     const plugin = this as CreasesPlugin;
-    const leaf = this.app.workspace.getLeaf();
     let outlineView: OutlineView | undefined = undefined;
     try {
       outlineView = this.app.viewRegistry.viewByType["outline"](leaf) as OutlineView;
@@ -420,6 +449,7 @@ export default class CreasesPlugin extends Plugin {
       // Outline plugin not enabled
       return;
     }
+
 
     const treeView = outlineView.treeView;
     const tempEl = createDiv();
@@ -494,6 +524,7 @@ export default class CreasesPlugin extends Plugin {
         },
       })
     );
+    outlineView.close();
   }
 
   private patchFileSuggest() {
