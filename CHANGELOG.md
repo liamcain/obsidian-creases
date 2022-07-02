@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.5](https://github-personal/liamcain/obsidian-creases/compare/0.6.4...0.6.5) (2022-07-02)
+
+
+### Bug Fixes
+
+* remove ghost panes introduced in Obsidian 0.15.X ([5e26f92](https://github-personal/liamcain/obsidian-creases/commit/5e26f92709dd7387fd3935fe7d33eef3f280f402))
+
 ### [0.6.4](https://github-personal/liamcain/obsidian-creases/compare/0.6.3...0.6.4) (2022-04-16)
 
 
