@@ -694,6 +694,15 @@ export default class CreasesPlugin extends Plugin {
     return pos
   }
 
+  private getFoldTargetPosition2(line: string): number {
+    let pos = line.length;
+    const blockIdExp = BLOCK_ID_REGEX.exec(line);
+    if (blockIdExp) {
+      pos = blockIdExp.index - 1;
+    }
+    return pos
+  }
+
   private async getCreasesFromFile(file: TFile): Promise<FoldPosition[]> {
     const fileContents = await this.app.vault.cachedRead(file);
     const fileLines = fileContents.split("\n");
