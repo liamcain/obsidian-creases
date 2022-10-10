@@ -677,16 +677,21 @@ export default class CreasesPlugin extends Plugin {
         editor.replaceRange(lineWithoutCrease, from, to);
       } else {
         // Add Crease
-        let pos = line.length;
-        const blockIdExp = BLOCK_ID_REGEX.exec(line);
-        if (blockIdExp) {
-          pos = blockIdExp.index - 1;
-        }
-        const from = { line: lineNum, ch: pos };
-        const to = { line: lineNum, ch: pos };
+        const  foldTargetPosition = this.getFoldTargetPosition(line)
+        const from = { line: lineNum, ch: foldTargetPosition };
+        const to = { line: lineNum, ch: foldTargetPosition };
         editor.replaceRange(" %% fold %% ", from, to);
       }
     });
+  }
+
+  private getFoldTargetPosition(line: string): number {
+    let pos = line.length;
+    const blockIdExp = BLOCK_ID_REGEX.exec(line);
+    if (blockIdExp) {
+      pos = blockIdExp.index - 1;
+    }
+    return pos;
   }
 
   private async getCreasesFromFile(file: TFile): Promise<FoldPosition[]> {
@@ -802,7 +807,7 @@ export default class CreasesPlugin extends Plugin {
     (existingFolds?.folds ?? []).forEach((fold) => {
       const line = editor.getLine(fold.from);
       if (!hasCrease(line)) {
-        const endOfLinePos = { line: fold.from, ch: line.length };
+        const endOfLinePos = { line: fold.from, ch: this.getFoldTargetPosition(line) };
         changes.push({
           text: " %% fold %%",
           from: endOfLinePos,
