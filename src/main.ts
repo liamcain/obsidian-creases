@@ -691,7 +691,7 @@ export default class CreasesPlugin extends Plugin {
     if (blockIdExp) {
       pos = blockIdExp.index - 1;
     }
-    return pos
+    return pos;
   }
 
   private async getCreasesFromFile(file: TFile): Promise<FoldPosition[]> {
