@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.6](https://github.com/liamcain/obsidian-creases/compare/0.6.5...0.6.6) (2022-12-29)
+
+
+### Bug Fixes
+
+* take blockId into consideration when bug fix for 'crease current folds' command [#21](https://github.com/liamcain/obsidian-creases/issues/21) ([#36](https://github.com/liamcain/obsidian-creases/issues/36)) ([ce3c85b](https://github.com/liamcain/obsidian-creases/commit/ce3c85b0ed539170e458224cc29dce4b0d2ad0e3))
+* take blockId into consideration when calling 'toggleCrease' ([f854847](https://github.com/liamcain/obsidian-creases/commit/f85484791c146dd667f8130682e41582bf52b932))
+
 ### [0.6.5](https://github.com/liamcain/obsidian-creases/compare/0.6.4...0.6.5) (2022-07-02)
 
 
