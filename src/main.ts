@@ -672,7 +672,7 @@ export default class CreasesPlugin extends Plugin {
       if (hasCrease(line)) {
         // Remove crease
         const from = { line: lineNum, ch: 0 };
-        const to = { line: lineNum, ch: line.length };
+        const to = { line: lineNum, ch: this.getFoldTargetPosition(line) };
         const lineWithoutCrease = line.replace(CREASE_REGEX, "").trimEnd();
         editor.replaceRange(lineWithoutCrease, from, to);
       } else {
