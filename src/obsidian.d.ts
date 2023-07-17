@@ -5,26 +5,6 @@ declare module "obsidian" {
     foldManager: FoldManager;
   }
 
-  interface TreeItem {
-    setCollapsed(collapse: boolean): Promise<void>;
-    collapsed: boolean;
-    children: TreeItem[];
-    el: HTMLElement;
-    heading: HeadingCache;
-  }
-
-  interface TreeView {
-    children: TreeItem[];
-    allItems: TreeItem[];
-  }
-
-  export interface OutlineView extends View {
-    file: TFile;
-    treeView: TreeView;
-    update: () => void;
-    close: () => void;
-  }
-
   export interface TemplaterNewNoteEvent {
     file: TFile;
     contents: string;

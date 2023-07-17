@@ -1,23 +1,17 @@
 import sortBy from "lodash/sortBy";
-import remove from "lodash/remove";
 import {
   Editor,
   EditorChange,
   EditorSelection,
   EventRef,
   FoldPosition,
-  HeadingCache,
-  MarkdownRenderer,
   MarkdownView,
   Menu,
-  OutlineView,
   Plugin,
-  stripHeading,
   TAbstractFile,
   TemplaterAppendedEvent,
   TemplaterNewNoteEvent,
   TFile,
-  WorkspaceLeaf,
 } from "obsidian";
 import { foldable } from "@codemirror/language";
 import { around } from "monkey-around";
@@ -27,20 +21,6 @@ import { CREASE_REGEX, hasCrease } from "./utils";
 import { CreasesSettings, CreasesSettingTab, DEFAULT_SETTINGS } from "./settings";
 
 const headingLevels = [1, 2, 3, 4, 5, 6];
-
-function selectionInclude(selection: EditorSelection, fromLine: number, toLine: number) {
-  const { anchor, head } = selection;
-
-  // selection anchor is between
-  if (anchor.line >= fromLine && anchor.line <= toLine) return true;
-  // selection head is between
-  if (head.line >= fromLine && head.line <= toLine) return true;
-  // selection envelopes (head < anchor)
-  if (head.line < fromLine && anchor.line > toLine) return true;
-  // selection envelopes (head > anchor)
-  if (anchor.line < fromLine && head.line > toLine) return true;
-  return false;
-}
 
 const BLOCK_ID_REGEX = /\^([a-zA-Z0-9-]+)$/;
 
@@ -86,18 +66,6 @@ export default class CreasesPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: "increase-fold-level-at-cursor",
-      name: "Fold more",
-      editorCallback: this.increaseFoldLevelAtCursor.bind(this),
-    });
-
-    this.addCommand({
-      id: "decrease-fold-level-at-cursor",
-      name: "Fold less",
-      editorCallback: this.decreaseFoldLevelAtCursor.bind(this),
-    });
-
-    this.addCommand({
       id: "increase-fold-level",
       name: "Increase heading fold level",
       editorCallback: this.increaseHeadingFoldLevel.bind(this),
@@ -110,10 +78,9 @@ export default class CreasesPlugin extends Plugin {
     });
 
     this.app.workspace.onLayoutReady(() => {
-      this.patchCoreOutlinePlugin();
+      // this.patchCoreOutlinePlugin();
       this.registerEvent(this.app.vault.on("create", this.onNewFile.bind(this)));
       this.patchCoreTemplatePlugin();
-      this.patchFileSuggest();
     });
 
     headingLevels.forEach((level) => {
@@ -157,29 +124,6 @@ export default class CreasesPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on("templates:template-appended", this.onTemplateAppend, this)
     );
-  }
-
-  private async increaseFoldLevelAtCursor(editor: Editor, view: MarkdownView) {
-    const foldInfo = await this.app.foldManager.load(view.file);
-    const folds = foldInfo?.folds ?? [];
-
-    const selections = editor.listSelections();
-    selections.forEach((selection) => {
-      const parentFolds = this.getAllParentFolds(editor, selection);
-      for (let i = parentFolds.length - 1; i >= 0; i--) {
-        const parentFold = parentFolds[i];
-        if (!folds.find((fold) => fold.from === parentFold.from)) {
-          folds.push(parentFold);
-          break;
-        }
-      }
-    });
-
-    view.currentMode.applyFoldInfo({
-      folds,
-      lines: view.editor.lineCount(),
-    });
-    view.onMarkdownFold();
   }
 
   private onFileOpen(_file: TFile): void {
@@ -266,29 +210,6 @@ export default class CreasesPlugin extends Plugin {
     }
   }
 
-  async decreaseFoldLevelAtCursor(editor: Editor, view: MarkdownView) {
-    const foldInfo = await this.app.foldManager.load(view.file);
-    const folds = foldInfo?.folds ?? [];
-
-    const selections = editor.listSelections();
-    selections.forEach((selection) => {
-      const parentFolds = this.getAllParentFolds(editor, selection);
-      for (let i = 0; i < parentFolds.length; i++) {
-        const parentFold = parentFolds[i];
-        if (folds.find((fold) => fold.from === parentFold.from)) {
-          remove(folds, (f) => f.from === parentFold.from);
-          break;
-        }
-      }
-    });
-
-    view.currentMode.applyFoldInfo({
-      folds,
-      lines: view.editor.lineCount(),
-    });
-    view.onMarkdownFold();
-  }
-
   async decreaseHeadingFoldLevel(_editor: Editor, view: MarkdownView) {
     const foldInfo = view.currentMode.getFoldInfo();
     const existingFolds = foldInfo?.folds ?? [];
@@ -358,30 +279,6 @@ export default class CreasesPlugin extends Plugin {
 
     this.register(
       around(leaf.view.constructor.prototype, {
-        onMarkdownFold(old: () => void) {
-          return async function () {
-            await old.call(this);
-
-            if (plugin.settings.syncOutlineView === "none") {
-              return;
-            }
-            const existingFolds = (this as MarkdownView).currentMode.getFoldInfo();
-
-            const outlineViewLeaf = workspace.getLeavesOfType("outline")[0];
-            if (outlineViewLeaf) {
-              const outlineView = outlineViewLeaf.view as OutlineView;
-              if (outlineView.file === this.file) {
-                const treeView = outlineView.treeView;
-                for (const item of treeView.allItems) {
-                  const isFolded = !!existingFolds?.folds.find(
-                    (fold) => fold.from === item.heading.position.start.line
-                  );
-                  item.setCollapsed(isFolded);
-                }
-              }
-            }
-          };
-        },
         onLoadFile(old: (file: TFile) => void) {
           return async function (file: TFile) {
             await old.call(this, file);
@@ -423,171 +320,6 @@ export default class CreasesPlugin extends Plugin {
           };
         },
       })
-    );
-  }
-
-  private getAnyLeaf(): WorkspaceLeaf {
-    let leaf: WorkspaceLeaf | null = this.app.workspace.activeLeaf;
-    if (leaf) return leaf;
-
-    this.app.workspace.iterateAllLeaves(l => {
-      if (!leaf) {
-        leaf = l;
-      }
-    });
-    return leaf!;
-  }
-
-  private patchCoreOutlinePlugin() {
-    const leaf = this.getAnyLeaf();
-
-    const plugin = this as CreasesPlugin;
-    let outlineView: OutlineView | undefined = undefined;
-    try {
-      outlineView = this.app.viewRegistry.viewByType["outline"](leaf) as OutlineView;
-    } catch (e) {
-      // Outline plugin not enabled
-      return;
-    }
-
-
-    const treeView = outlineView.treeView;
-    const tempEl = createDiv();
-    const tempTreeView = treeView.constructor(tempEl);
-    tempTreeView.renderOutline([
-      {
-        heading: "test",
-        level: 1,
-      },
-    ]);
-
-    this.register(
-      around(tempTreeView.allItems[0].constructor.prototype, {
-        onCollapseClick(old: () => void) {
-          return function (e: MouseEvent) {
-            old.call(this, e);
-
-            if (plugin.settings.syncOutlineView !== "bidirectional") {
-              return;
-            }
-
-            const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-            if (view) {
-              const existingFolds = view.currentMode.getFoldInfo()?.folds ?? [];
-              if (this.collapsed) {
-                const foldPositions = [
-                  ...existingFolds,
-                  {
-                    from: this.heading.position.start.line,
-                    to: this.heading.position.start.line + 1,
-                  },
-                ];
-                view.currentMode.applyFoldInfo({
-                  folds: foldPositions,
-                  lines: view.editor.lineCount(),
-                });
-              } else {
-                view.currentMode.applyFoldInfo({
-                  folds: existingFolds.filter(
-                    (fold) => this.heading.position.start.line !== fold.from
-                  ),
-                  lines: view.editor.lineCount(),
-                });
-              }
-              view.onMarkdownFold();
-            }
-          };
-        },
-        render(old: () => void) {
-          return function () {
-            old.call(this);
-            const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-            if (view) {
-              this.innerEl.empty();
-              MarkdownRenderer.renderMarkdown(
-                this.heading.heading,
-                this.innerEl,
-                view.file.path,
-                this
-              );
-
-              const existingFolds = view.currentMode.getFoldInfo()?.folds ?? [];
-              if (
-                existingFolds.find(
-                  (fold) => fold.from === this.heading.position.start.line
-                )
-              ) {
-                this.setCollapsed(true);
-              }
-            }
-          };
-        },
-      })
-    );
-    outlineView.close();
-  }
-
-  private patchFileSuggest() {
-    const suggests = this.app.workspace.editorSuggest.suggests;
-    const fileSuggest = suggests.find((s) => (s as any).mode !== undefined);
-    if (!fileSuggest) {
-      return;
-    }
-
-    this.register(
-      around(fileSuggest.constructor.prototype, {
-        getGlobalBlockSuggestions(old: () => any[]) {
-          return async function (...args: any[]) {
-            const blocks = await old.call(this, ...args);
-            if (!blocks) {
-              return null;
-            }
-            return blocks.map((b: any) => {
-              if (b.node.type !== "heading") {
-                return b;
-              }
-              return {
-                ...b,
-                display: stripHeading(
-                  b.node.data.hProperties.dataHeading.replace(CREASE_REGEX, "")
-                ),
-              };
-            });
-          };
-        },
-        getGlobalHeadingSuggestions(old: () => HeadingCache[]) {
-          return async function (...args: any[]) {
-            const headings = await old.call(this, ...args);
-            if (!headings) {
-              return null;
-            }
-            return headings.map((h: HeadingCache) => ({
-              ...h,
-              heading: stripHeading(h.heading.replace(CREASE_REGEX, "")),
-            }));
-          };
-        },
-
-        getHeadingSuggestions(old: () => HeadingCache[]) {
-          return async function (...args: any[]) {
-            const headings = await old.call(this, ...args);
-            if (!headings) {
-              return null;
-            }
-            return headings.map((h: HeadingCache) => ({
-              ...h,
-              heading: stripHeading(h.heading.replace(CREASE_REGEX, "")),
-            }));
-          };
-        },
-      })
-    );
-  }
-
-  private getAllParentFolds(editor: Editor, selection: EditorSelection): FoldPosition[] {
-    const allFoldsInFile = this.getAllFoldableLines(editor);
-    return allFoldsInFile.filter((fold) =>
-      selectionInclude(selection, fold.from, fold.to)
     );
   }
 

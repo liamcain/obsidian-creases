@@ -3,12 +3,11 @@ import {
   DecorationSet,
   EditorView,
   MatchDecorator,
-  PluginField,
   ViewPlugin,
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view";
-import { App, editorLivePreviewField, Menu, setIcon } from "obsidian";
+import { App, Menu, editorLivePreviewField, setIcon } from "obsidian";
 
 class CreaseWidget extends WidgetType {
   constructor(
@@ -26,9 +25,9 @@ class CreaseWidget extends WidgetType {
 
   toDOM() {
     const creaseEl = createSpan("cm-creases-icon");
-    setIcon(creaseEl, "shirt", 12);
+    setIcon(creaseEl, "shirt");
     creaseEl.addEventListener("click", (evt) => {
-      const menu = new Menu(this.app);
+      const menu = new Menu();
       menu
         .addItem((item) =>
           item
@@ -87,7 +86,9 @@ export function creasePlugin(app: App) {
     },
     {
       decorations: (v) => v.decorations,
-      provide: PluginField.atomicRanges.from((val) => val.decorations),
+      provide: plugin => EditorView.atomicRanges.of(view => {
+        return view.plugin(plugin)?.decorations || Decoration.none
+      })
     }
   );
 }

@@ -30,25 +30,6 @@ export class CreasesSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     containerEl.createEl("h3", {
-      text: "Folding",
-    });
-
-    new Setting(containerEl)
-      .setName("Sync editor folds with outline view")
-      .addDropdown((cb) => {
-        cb.addOptions({
-          "from-editor-to-outline": "From editor to outline",
-          bidirectional: "Bidirectionally",
-          none: "None",
-        });
-        cb.setValue(this.plugin.settings.syncOutlineView);
-        cb.onChange(async (value) => {
-          this.plugin.settings.syncOutlineView = value as OutlineSyncType;
-          await this.plugin.saveSettings();
-        });
-      });
-
-    containerEl.createEl("h3", {
       text: "Crease Behavior",
     });
 
