@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.7.0](https://github.com/liamcain/obsidian-creases/compare/0.6.6...0.7.0) (2023-07-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* removed the options to sync folds between the editor
+and the Outline view. Because of the internal Obsidian changes, this
+logic has been broken for a while and has been removed.
+
+### Bug Fixes
+
+* no longer causes a split view to appear when opening a file. ([8d556cb](https://github.com/liamcain/obsidian-creases/commit/8d556cbae47445426a54f3d9955c62b2d3d0adfa))
+
 ### [0.6.6](https://github.com/liamcain/obsidian-creases/compare/0.6.5...0.6.6) (2022-12-29)
 
 
