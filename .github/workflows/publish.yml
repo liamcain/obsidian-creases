@@ -14,17 +14,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
-          node-version: "18.x" # You might need to adjust this value to your own version
+          node-version: "18.x"
+          cache: "pnpm"
       - name: Build
         id: build
         run: |
-          npm install -g yarn
-          yarn
-          yarn run build:ci --if-present
+          pnpm install --frozen-lockfile
+          pnpm run build:ci
           mkdir ${{ env.PLUGIN_NAME }}
           cp main.js manifest.json styles.css ${{ env.PLUGIN_NAME }}
           zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}

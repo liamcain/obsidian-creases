@@ -8,28 +8,20 @@
   "scripts": {
     "lint": "eslint . --ext .ts",
     "dev": "node --experimental-json-modules esbuild.config.mjs",
-    "build": "yarn run lint && node --experimental-json-modules esbuild.config.mjs production",
+    "build": "pnpm run lint && node --experimental-json-modules esbuild.config.mjs production",
     "build:ci": "node --experimental-json-modules esbuild.config.mjs production",
     "release": "standard-version"
   },
   "standard-version": {
     "t": ""
   },
-  "peerDependencies": {
-    "@codemirror/language": "0.19.x",
-    "@codemirror/rangeset": "0.19.x",
-    "@codemirror/view": "0.19.x"
-  },
   "dependencies": {
     "lodash": "4.17.21"
   },
   "devDependencies": {
-    "@codemirror/basic-setup": "^0.20.0",
-    "@codemirror/buildhelper": "^1.0.0",
-    "@codemirror/lang-css": "^6.2.0",
-    "@codemirror/language": "^6.8.0",
-    "@codemirror/rangeset": "^0.19.9",
-    "@codemirror/view": "^6.15.0",
+    "@codemirror/state": "6.4.1",
+    "@codemirror/language": "https://github.com/lishid/cm-language",
+		"@codemirror/view": "https://github.com/lishid/cm-view",
     "@types/lodash": "4.14.179",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "5.13.0",
@@ -49,5 +41,8 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
   }
 }
