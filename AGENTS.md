@@ -112,3 +112,16 @@ Avoid:
 - `Cleanup`, `tmp`, `Update package.json` — not parseable by `standard-version`, will be silently skipped from the changelog.
 - Hand-writing `chore(release): X.Y.Z` — let `standard-version` produce these.
 - `Update README` — be specific: `docs: Document install instructions`.
+
+# TypeScript Style
+
+## Don't sprinkle `as const`
+
+Avoid `as const` on string literals (especially discriminants like `type: "dropdown"` or property keys) inside object literals that are passed to a typed API. When the receiving function's parameter type is a discriminated union or has literal-typed fields, TypeScript already narrows the literal — the cast is noise.
+
+Only reach for `as const` when:
+
+- the value is being assigned to a `let` / variable whose inferred type would otherwise widen (e.g. `const mode = "edit"` is fine; `let mode = "edit"` widens to `string`), **and** that widening is actually breaking something.
+- you are building a tuple or readonly array whose literal types need to be preserved across a function boundary.
+
+If a real type error appears, fix the type, not the call site.
