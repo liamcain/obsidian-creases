@@ -5,3 +5,4 @@ main.js
 .vscode/
 *.code-workspace
 .DS_Store
+.env

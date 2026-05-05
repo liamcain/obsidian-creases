@@ -16,9 +16,13 @@ if you want to view the source, please visit the github repository of this plugi
 const prod = process.argv[2] === "production";
 let outdir = "./";
 if (!prod) {
-  const vaultDir =
-    process.env.REAL === "1" ? process.env.REAL_VAULT : process.env.TEST_VAULT;
-  outdir = `${vaultDir}.obsidian/plugins/${manifest.id}`;
+  const vault = process.env.OBSIDIAN_VAULT_PATH;
+  if (!vault) {
+    console.error("OBSIDIAN_VAULT_PATH is not set.");
+    console.error("Copy .env.example to .env and set it to your vault path.");
+    process.exit(1);
+  }
+  outdir = `${vault.replace(/\/$/, "")}/.obsidian/plugins/${manifest.id}`;
 }
 
 console.info(`\nSaving plugin to ${outdir}\n`);
