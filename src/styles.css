@@ -4,6 +4,8 @@
   transition: opacity 0.2s ease-in;
 }
 
-.cm-creases-icon:hover {
-  opacity: 0.8;
+@media (hover: hover) {
+  .cm-creases-icon:hover {
+    opacity: 0.8;
+  }
 }
