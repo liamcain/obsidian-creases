@@ -25,13 +25,13 @@ const headingLevels = [1, 2, 3, 4, 5, 6];
 const BLOCK_ID_REGEX = /\^([a-zA-Z0-9-]+)$/;
 
 export default class CreasesPlugin extends Plugin {
-  public settings: CreasesSettings;
-  private onFileOpenListener: EventRef;
+  public settings!: CreasesSettings;
+  private onFileOpenListener: EventRef | null = null;
 
   async onload(): Promise<void> {
     await this.loadSettings();
 
-    this.registerSettingsTab();
+    this.addSettingTab(new CreasesSettingTab(this.app, this));
     this.registerEditorExtension(creasePlugin(this.app));
     this.addCommand({
       id: "fold",
@@ -374,7 +374,7 @@ export default class CreasesPlugin extends Plugin {
     return null;
   }
 
-  onEditorMenu(menu: Menu, editor: Editor, view: MarkdownView): void {
+  onEditorMenu(menu: Menu, editor: Editor): void {
     if (!editor.getSelection()) {
       return;
     }
@@ -384,12 +384,12 @@ export default class CreasesPlugin extends Plugin {
         .setTitle("Toggle crease")
         .setIcon("shirt")
         .onClick(() => {
-          this.toggleCrease(editor, view);
+          this.toggleCrease(editor);
         })
     );
   }
 
-  toggleCrease(editor: Editor, _view: MarkdownView): void {
+  toggleCrease(editor: Editor): void {
     const selections = editor.listSelections();
 
     selections.forEach((selection) => {
@@ -550,7 +550,7 @@ export default class CreasesPlugin extends Plugin {
     editor.transaction({ changes });
   }
 
-  clearCreases(editor: Editor, _view: MarkdownView): void {
+  clearCreases(editor: Editor): void {
     const changes: EditorChange[] = [];
     for (let lineNum = 0; lineNum < editor.lastLine(); lineNum++) {
       const line = editor.getLine(lineNum);
@@ -571,9 +571,5 @@ export default class CreasesPlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
-  }
-
-  registerSettingsTab() {
-    this.addSettingTab(new CreasesSettingTab(this.app, this));
   }
 }
