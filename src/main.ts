@@ -99,11 +99,14 @@ export default class CreasesPlugin extends Plugin {
       name: "Increase heading fold level",
       checkCallback: (checking) => {
         const ctx = this.activeEditor;
-        if (ctx && ctx.editor) {
-          if (!checking) {
-            this.increaseHeadingFoldLevel(ctx);
+        if (ctx && ctx.editor && ctx.file) {
+          const headings = this.app.metadataCache.getFileCache(ctx.file)?.headings ?? [];
+          if (headings.length > 0) {
+            if (!checking) {
+              this.increaseHeadingFoldLevel(ctx);
+            }
+            return true;
           }
-          return true;
         }
       },
     });
@@ -113,11 +116,14 @@ export default class CreasesPlugin extends Plugin {
       name: "Decrease heading fold level",
       checkCallback: (checking) => {
         const ctx = this.activeEditor;
-        if (ctx && ctx.editor) {
-          if (!checking) {
-            this.decreaseHeadingFoldLevel(ctx);
+        if (ctx && ctx.editor && ctx.file) {
+          const headings = this.app.metadataCache.getFileCache(ctx.file)?.headings ?? [];
+          if (headings.length > 0) {
+            if (!checking) {
+              this.decreaseHeadingFoldLevel(ctx);
+            }
+            return true;
           }
-          return true;
         }
       },
     });
@@ -133,11 +139,15 @@ export default class CreasesPlugin extends Plugin {
         name: `Toggle fold for H${level}`,
         checkCallback: (checking) => {
           const ctx = this.activeEditor;
-          if (ctx && ctx.editor) {
-            if (!checking) {
-              this.toggleFoldForHeadingLevel(ctx, level);
+          if (ctx && ctx.editor && ctx.file) {
+            const headings =
+              this.app.metadataCache.getFileCache(ctx.file)?.headings ?? [];
+            if (headings.some((h) => h.level === level)) {
+              if (!checking) {
+                this.toggleFoldForHeadingLevel(ctx, level);
+              }
+              return true;
             }
-            return true;
           }
         },
       });
@@ -285,6 +295,7 @@ export default class CreasesPlugin extends Plugin {
     if (!ctx.editor || !ctx.file) return;
     const existingFolds = ctx.editMode.getFoldInfo()?.folds ?? [];
     const headings = this.app.metadataCache.getFileCache(ctx.file)?.headings ?? [];
+    if (headings.length === 0) return;
 
     let maxFoldLevel = Math.max(...headings.map((h) => h.level));
     for (const heading of headings) {
@@ -518,6 +529,7 @@ export default class CreasesPlugin extends Plugin {
     const headingsAtLevel = (
       this.app.metadataCache.getFileCache(ctx.file)?.headings ?? []
     ).filter((heading) => heading.level === level);
+    if (headingsAtLevel.length === 0) return;
 
     const headingLineNums = new Set(headingsAtLevel.map((h) => h.position.start.line));
     const firstHeadingLine = headingsAtLevel[0].position.start.line;
