@@ -450,15 +450,21 @@ export default class CreasesPlugin extends Plugin {
 
   private async getCreasesFromFile(file: TFile): Promise<FoldRange[]> {
     const fileContents = await this.app.vault.cachedRead(file);
-    const fileLines = fileContents.split("\n");
     const foldPositions: FoldRange[] = [];
-    for (let lineNum = 0; lineNum <= fileLines.length; lineNum++) {
-      const line = fileLines[lineNum];
-      if (hasCrease(line)) {
-        foldPositions.push({
-          from: lineNum,
-          to: lineNum + 1,
-        });
+
+    const creasePattern = new RegExp(CREASE_REGEX.source, "g");
+    let lineNum = 0;
+    let scanned = 0;
+    let lastPushedLine = -1;
+    let match;
+    while ((match = creasePattern.exec(fileContents)) !== null) {
+      for (let i = scanned; i < match.index; i++) {
+        if (fileContents.charCodeAt(i) === 10) lineNum++;
+      }
+      scanned = match.index;
+      if (lineNum !== lastPushedLine) {
+        foldPositions.push({ from: lineNum, to: lineNum + 1 });
+        lastPushedLine = lineNum;
       }
     }
     return foldPositions;
