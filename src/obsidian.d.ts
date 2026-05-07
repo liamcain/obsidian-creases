@@ -1,45 +1,37 @@
 import "obsidian";
 
 declare module "obsidian" {
-  export interface App {
-    foldManager: FoldManager;
+  interface FoldRange {
+    from: number;
+    to: number;
   }
 
-  export interface TemplaterNewNoteEvent {
-    file: TFile;
-    contents: string;
+  interface FoldInfo {
+    folds: FoldRange[];
+    lines: number;
   }
 
-  export interface TemplaterOverwriteEvent {
-    file: TFile;
-    contents: string;
+  interface EditorComponent {
+    editor: Editor;
+    getFoldInfo(): FoldInfo | null;
+    applyFoldInfo(info: FoldInfo): void;
   }
 
-  export interface TemplaterAppendedEvent {
-    oldSelections: EditorSelection[];
-    newSelections: EditorSelection[];
-    view: MarkdownView;
-    content: string;
+  interface Editor {
+    getAllFoldableLines(): FoldRange[];
   }
 
-  interface MarkdownView {
+  interface MarkdownViewController extends MarkdownFileInfo {
+    editMode: EditorComponent;
+    getMode(): "source" | "preview";
     onMarkdownFold(): void;
   }
 
   interface MarkdownSubView {
-    applyFoldInfo(foldInfo: FoldInfo): void;
-    getFoldInfo(): FoldInfo | null;
+    applyFoldInfo(info: FoldInfo): void;
   }
 
-  interface Editor {
-    cm: CodeMirror.Editor;
-  }
-
-  interface EditorSuggestManager {
-    suggests: EditorSuggest<any>[];
-  }
-
-  export interface Workspace extends Events {
+  interface Workspace {
     on(name: "status-bar-updated", callback: () => any, ctx?: any): EventRef;
     on(name: "ribbon-bar-updated", callback: () => any, ctx?: any): EventRef;
     on(
@@ -62,9 +54,36 @@ declare module "obsidian" {
       callback: (event: TemplaterOverwriteEvent) => any,
       ctx?: any
     ): EventRef;
-
-    editorSuggest: EditorSuggestOwner;
   }
+
+  export interface TemplaterNewNoteEvent {
+    file: TFile;
+    contents: string;
+  }
+
+  export interface TemplaterOverwriteEvent {
+    file: TFile;
+    contents: string;
+  }
+
+  export interface TemplaterAppendedEvent {
+    oldSelections: EditorSelection[];
+    newSelections: EditorSelection[];
+    view: MarkdownViewController;
+    content: string;
+  }
+
+  export interface FoldManager {
+    load(file: TFile): Promise<FoldInfo>;
+    save(file: TFile, foldInfo: FoldInfo): Promise<void>;
+  }
+
+  interface App {
+    foldManager: FoldManager;
+    internalPlugins: InternalPlugins;
+    viewRegistry: ViewRegistry;
+  }
+
   interface VaultSettings {
     legacyEditor: boolean;
     foldHeading: boolean;
@@ -73,21 +92,6 @@ declare module "obsidian" {
     readableLineLength: boolean;
     tabSize: number;
     showFrontmatter: boolean;
-  }
-
-  interface FoldPosition {
-    from: number;
-    to: number;
-  }
-
-  interface FoldInfo {
-    folds: FoldPosition[];
-    lines: number;
-  }
-
-  export interface FoldManager {
-    load(file: TFile): Promise<FoldInfo>;
-    save(file: TFile, foldInfo: FoldInfo): Promise<void>;
   }
 
   interface Vault {
@@ -99,15 +103,6 @@ declare module "obsidian" {
     id: string;
   }
 
-  export interface ViewRegistry {
-    viewByType: Record<string, (leaf: WorkspaceLeaf) => unknown>;
-    isExtensionRegistered(extension: string): boolean;
-  }
-
-  export interface App {
-    internalPlugins: InternalPlugins;
-    viewRegistry: ViewRegistry;
-  }
   export interface InstalledPlugin {
     enabled: boolean;
     instance: PluginInstance;
@@ -116,5 +111,10 @@ declare module "obsidian" {
   export interface InternalPlugins {
     plugins: Record<string, InstalledPlugin>;
     getPluginById(id: string): InstalledPlugin;
+  }
+
+  export interface ViewRegistry {
+    viewByType: Record<string, (leaf: WorkspaceLeaf) => unknown>;
+    isExtensionRegistered(extension: string): boolean;
   }
 }
