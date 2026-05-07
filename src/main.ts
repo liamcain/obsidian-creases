@@ -13,7 +13,6 @@ import {
   TemplaterNewNoteEvent,
   TFile,
 } from "obsidian";
-import { foldable } from "@codemirror/language";
 import { around } from "monkey-around";
 
 import { creasePlugin } from "./creaseWidget";
@@ -323,46 +322,14 @@ export default class CreasesPlugin extends Plugin {
     );
   }
 
-  private getAllFoldableLines(editor: Editor): FoldPosition[] {
-    if (this.app.vault.getConfig("legacyEditor")) {
-      const foldOpts = editor.cm.state.foldGutter.options;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const getFoldRegion = (editor.cm as any).foldOption(foldOpts, "rangeFinder");
-
-      const foldPositions: FoldPosition[] = [];
-      for (let lineNum = 0; lineNum <= editor.lastLine(); lineNum++) {
-        const foldRegion = getFoldRegion(editor.cm, CodeMirror.Pos(lineNum, 0));
-        if (foldRegion) {
-          foldPositions.push({
-            from: foldRegion.from.line,
-            to: foldRegion.to.line,
-          });
-        }
-      }
-      return foldPositions;
-    }
-
-    const foldPositions: FoldPosition[] = [];
-    for (let lineNum = 0; lineNum <= editor.lastLine(); lineNum++) {
-      const linePos = editor.posToOffset({ line: lineNum, ch: 0 });
-      const foldRegion = foldable(editor.cm.state, linePos, linePos);
-      if (foldRegion) {
-        const foldStartPos = editor.offsetToPos(foldRegion.from);
-        const foldEndPos = editor.offsetToPos(foldRegion.to);
-        foldPositions.push({
-          from: foldStartPos.line,
-          to: foldEndPos.line,
-        });
-      }
-    }
-    return foldPositions;
-  }
-
   private getRelevantFold(
     editor: Editor,
     selection: EditorSelection
   ): FoldPosition | null {
-    const allFolds = this.getAllFoldableLines(editor);
+    const allFolds = editor.getAllFoldableLines().map((r) => ({
+      from: editor.offsetToPos(r.from).line,
+      to: editor.offsetToPos(r.to).line,
+    }));
 
     for (let i = allFolds.length - 1; i >= 0; i--) {
       const fold = allFolds[i];
