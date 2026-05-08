@@ -77,11 +77,16 @@ export function creasePlugin(app: App) {
       }
 
       update(update: ViewUpdate) {
-        if (!update.state.field(editorLivePreviewField)) {
+        const nowInLivePreview = update.state.field(editorLivePreviewField);
+        const wasInLivePreview = update.startState.field(editorLivePreviewField);
+
+        if (!nowInLivePreview) {
           this.decorations = Decoration.none;
-          return;
+        } else if (!wasInLivePreview) {
+          this.decorations = this.decorator.createDeco(update.view);
+        } else {
+          this.decorations = this.decorator.updateDeco(update, this.decorations);
         }
-        this.decorations = this.decorator.updateDeco(update, this.decorations);
       }
     },
     {
