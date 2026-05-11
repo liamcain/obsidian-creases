@@ -1,6 +1,6 @@
 {
   "name": "obsidian-creases",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Configurable folding within Obsidian",
   "author": "liamcain",
   "main": "main.js",
@@ -16,14 +16,20 @@
   "standard-version": {
     "t": "",
     "bumpFiles": [
-      { "filename": "package.json", "type": "json" },
-      { "filename": "manifest.json", "type": "json" }
+      {
+        "filename": "package.json",
+        "type": "json"
+      },
+      {
+        "filename": "manifest.json",
+        "type": "json"
+      }
     ]
   },
   "devDependencies": {
     "@codemirror/state": "6.4.1",
     "@codemirror/language": "https://github.com/lishid/cm-language",
-		"@codemirror/view": "https://github.com/lishid/cm-view",
+    "@codemirror/view": "https://github.com/lishid/cm-view",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "5.13.0",
     "@typescript-eslint/parser": "5.13.0",
@@ -43,6 +49,8 @@
     }
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

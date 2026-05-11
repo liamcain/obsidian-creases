@@ -2,7 +2,7 @@
   "id": "creases",
   "name": "Creases",
   "description": "Tools for efficiently folding Markdown sections.",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": "Liam Cain",
   "authorUrl": "https://github.com/liamcain/",
   "isDesktopOnly": false,

@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.1](https://github.com/liamcain/obsidian-creases/compare/0.7.0...0.7.1) (2026-05-11)
+
+
+### Features
+
+* **settings:** Add support for new declarative getSettingDefinitions API ([282b330](https://github.com/liamcain/obsidian-creases/commit/282b330a299168083d51ff050f99785be5bb6f9f))
+
+
+### Bug Fixes
+
+* Gate .cm-creases-icon hover behind (hover: hover) ([c7efb6c](https://github.com/liamcain/obsidian-creases/commit/c7efb6ca80335d2072c0f31ce6502b8c110160b6))
+* guard heading-level commands against files with no matching headings ([28c823f](https://github.com/liamcain/obsidian-creases/commit/28c823fe28575390fc6acb8b395c6a71581b1d30))
+* Render crease widgets when switching from source mode to live preview ([ca92a50](https://github.com/liamcain/obsidian-creases/commit/ca92a50adaa5e1d84ef6d665c1cc5ec7d62892e7))
+
 ## [0.7.0](https://github.com/liamcain/obsidian-creases/compare/0.6.6...0.7.0) (2023-07-17)
 
 
