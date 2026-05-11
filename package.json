@@ -5,6 +5,7 @@
   "author": "liamcain",
   "main": "main.js",
   "license": "MIT",
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
     "lint": "eslint . --ext .ts",
     "dev": "node --experimental-json-modules esbuild.config.mjs",
