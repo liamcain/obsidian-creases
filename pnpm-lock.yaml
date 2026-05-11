@@ -8,15 +8,12 @@ importers:
 
   .:
     devDependencies:
-      '@codemirror/language':
-        specifier: https://github.com/lishid/cm-language
-        version: https://codeload.github.com/lishid/cm-language/tar.gz/2d416d7835867d1b1e8d0e726b147fc1135c9f92
       '@codemirror/state':
-        specifier: 6.4.1
-        version: 6.4.1
+        specifier: 6.5.0
+        version: 6.5.0
       '@codemirror/view':
-        specifier: https://github.com/lishid/cm-view
-        version: https://codeload.github.com/lishid/cm-view/tar.gz/23b81c419e1fd95b7502749b6fbe356d42ad89a3
+        specifier: 6.38.6
+        version: 6.38.6
       '@types/node':
         specifier: ^16.11.6
         version: 16.18.126
@@ -43,7 +40,7 @@ importers:
         version: 2.3.0
       obsidian:
         specifier: latest
-        version: 1.12.3(@codemirror/state@6.4.1)(@codemirror/view@https://codeload.github.com/lishid/cm-view/tar.gz/23b81c419e1fd95b7502749b6fbe356d42ad89a3)
+        version: 1.12.3(@codemirror/state@6.5.0)(@codemirror/view@6.38.6)
       standard-version:
         specifier: ^9.3.2
         version: 9.5.0
@@ -64,22 +61,11 @@ packages:
     resolution: {integrity: sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q==}
     engines: {node: '>=6.9.0'}
 
-  '@codemirror/language@https://codeload.github.com/lishid/cm-language/tar.gz/2d416d7835867d1b1e8d0e726b147fc1135c9f92':
-    resolution: {tarball: https://codeload.github.com/lishid/cm-language/tar.gz/2d416d7835867d1b1e8d0e726b147fc1135c9f92}
-    version: 6.11.2
+  '@codemirror/state@6.5.0':
+    resolution: {integrity: sha512-MwBHVK60IiIHDcoMet78lxt6iw5gJOGSbNbOIVBHWVXIH4/Nq1+GQgLLGgI1KlnN86WDXsPudVaqYHKBIx7Eyw==}
 
-  '@codemirror/state@6.4.1':
-    resolution: {integrity: sha512-QkEyUiLhsJoZkbumGZlswmAhA7CBU02Wrz7zvH4SrcifbsqwlXShVXg65f3v/ts57W3dqyamEriMhij1Z3Zz4A==}
-
-  '@codemirror/state@6.6.0':
-    resolution: {integrity: sha512-4nbvra5R5EtiCzr9BTHiTLc+MLXK2QGiAVYMyi8PkQd3SR+6ixar/Q/01Fa21TBIDOZXgeWV4WppsQolSreAPQ==}
-
-  '@codemirror/view@6.40.0':
-    resolution: {integrity: sha512-WA0zdU7xfF10+5I3HhUUq3kqOx3KjqmtQ9lqZjfK7jtYk4G72YW9rezcSywpaUMCWOMlq+6E0pO1IWg1TNIhtg==}
-
-  '@codemirror/view@https://codeload.github.com/lishid/cm-view/tar.gz/23b81c419e1fd95b7502749b6fbe356d42ad89a3':
-    resolution: {tarball: https://codeload.github.com/lishid/cm-view/tar.gz/23b81c419e1fd95b7502749b6fbe356d42ad89a3}
-    version: 6.40.0
+  '@codemirror/view@6.38.6':
+    resolution: {integrity: sha512-qiS0z1bKs5WOvHIAC0Cybmv4AJSkAXgX5aD6Mqd2epSLlVJsQl8NG23jCVouIgkh4All/mrbdsf2UOLFnJw0tw==}
 
   '@commitlint/config-validator@20.5.0':
     resolution: {integrity: sha512-T/Uh6iJUzyx7j35GmHWdIiGRQB+ouZDk0pwAaYq4SXgB54KZhFdJ0vYmxiW6AMYICTIWuyMxDBl1jK74oFp/Gw==}
@@ -117,15 +103,6 @@ packages:
   '@hutson/parse-repository-url@3.0.2':
     resolution: {integrity: sha512-H9XAx3hc0BQHY6l+IFSWHDySypcXsvsuLhgYLUGywmJ5pswRVQJUHpOsobnLYp2ZUaUlKiKDrgWWhosOwAEM8Q==}
     engines: {node: '>=6.9.0'}
-
-  '@lezer/common@1.5.2':
-    resolution: {integrity: sha512-sxQE460fPZyU3sdc8lafxiPwJHBzZRy/udNFynGQky1SePYBdhkBl1kOagA9uT3pxR8K09bOrmTUqA9wb/PjSQ==}
-
-  '@lezer/highlight@1.2.3':
-    resolution: {integrity: sha512-qXdH7UqTvGfdVBINrgKhDsVTJTxactNNxLk7+UMwZhU13lMHaOBlJe9Vqp907ya56Y3+ed2tlqzys7jDkTmW0g==}
-
-  '@lezer/lr@1.4.10':
-    resolution: {integrity: sha512-rnCpTIBafOx4mRp43xOxDJbFipJm/c0cia/V5TiGlhmMa+wsSdoGmUN3w5Bqrks/09Q/D4tNAmWaT8p6NRi77A==}
 
   '@marijn/find-cluster-break@1.0.2':
     resolution: {integrity: sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g==}
@@ -1194,7 +1171,6 @@ packages:
 
   obsidian@1.12.3:
     resolution: {integrity: sha512-HxWqe763dOqzXjnNiHmAJTRERN8KILBSqxDSEqbeSr7W8R8Jxezzbca+nz1LiiqXnMpM8lV2jzAezw3CZ4xNUw==}
-    version: 1.12.3
     peerDependencies:
       '@codemirror/state': 6.5.0
       '@codemirror/view': 6.38.6
@@ -1689,31 +1665,13 @@ snapshots:
 
   '@babel/helper-validator-identifier@7.28.5': {}
 
-  '@codemirror/language@https://codeload.github.com/lishid/cm-language/tar.gz/2d416d7835867d1b1e8d0e726b147fc1135c9f92':
-    dependencies:
-      '@codemirror/state': 6.4.1
-      '@codemirror/view': 6.40.0
-      '@lezer/common': 1.5.2
-      '@lezer/highlight': 1.2.3
-      '@lezer/lr': 1.4.10
-      style-mod: 4.1.3
-
-  '@codemirror/state@6.4.1': {}
-
-  '@codemirror/state@6.6.0':
+  '@codemirror/state@6.5.0':
     dependencies:
       '@marijn/find-cluster-break': 1.0.2
 
-  '@codemirror/view@6.40.0':
+  '@codemirror/view@6.38.6':
     dependencies:
-      '@codemirror/state': 6.6.0
-      crelt: 1.0.6
-      style-mod: 4.1.3
-      w3c-keyname: 2.2.8
-
-  '@codemirror/view@https://codeload.github.com/lishid/cm-view/tar.gz/23b81c419e1fd95b7502749b6fbe356d42ad89a3':
-    dependencies:
-      '@codemirror/state': 6.6.0
+      '@codemirror/state': 6.5.0
       crelt: 1.0.6
       style-mod: 4.1.3
       w3c-keyname: 2.2.8
@@ -1784,16 +1742,6 @@ snapshots:
   '@humanwhocodes/object-schema@1.2.1': {}
 
   '@hutson/parse-repository-url@3.0.2': {}
-
-  '@lezer/common@1.5.2': {}
-
-  '@lezer/highlight@1.2.3':
-    dependencies:
-      '@lezer/common': 1.5.2
-
-  '@lezer/lr@1.4.10':
-    dependencies:
-      '@lezer/common': 1.5.2
 
   '@marijn/find-cluster-break@1.0.2': {}
 
@@ -2928,10 +2876,10 @@ snapshots:
       semver: 7.7.4
       validate-npm-package-license: 3.0.4
 
-  obsidian@1.12.3(@codemirror/state@6.4.1)(@codemirror/view@https://codeload.github.com/lishid/cm-view/tar.gz/23b81c419e1fd95b7502749b6fbe356d42ad89a3):
+  obsidian@1.12.3(@codemirror/state@6.5.0)(@codemirror/view@6.38.6):
     dependencies:
-      '@codemirror/state': 6.4.1
-      '@codemirror/view': https://codeload.github.com/lishid/cm-view/tar.gz/23b81c419e1fd95b7502749b6fbe356d42ad89a3
+      '@codemirror/state': 6.5.0
+      '@codemirror/view': 6.38.6
       '@types/codemirror': 5.60.8
       moment: 2.29.4
 

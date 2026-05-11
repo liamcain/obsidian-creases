@@ -28,9 +28,8 @@
     ]
   },
   "devDependencies": {
-    "@codemirror/state": "6.4.1",
-    "@codemirror/language": "https://github.com/lishid/cm-language",
-    "@codemirror/view": "https://github.com/lishid/cm-view",
+    "@codemirror/state": "6.5.0",
+    "@codemirror/view": "6.38.6",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "5.13.0",
     "@typescript-eslint/parser": "5.13.0",
