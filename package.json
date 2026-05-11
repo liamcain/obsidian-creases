@@ -7,7 +7,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.22.0",
   "scripts": {
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "dev": "node --env-file-if-exists=.env esbuild.config.mjs",
     "build": "pnpm run lint && node esbuild.config.mjs production",
     "build:ci": "node esbuild.config.mjs production",
@@ -33,17 +33,20 @@
   "devDependencies": {
     "@codemirror/state": "6.5.0",
     "@codemirror/view": "6.38.6",
+    "@eslint/js": "9.30.1",
     "@types/node": "^16.11.6",
-    "@typescript-eslint/eslint-plugin": "5.13.0",
-    "@typescript-eslint/parser": "5.13.0",
     "cz-conventional-changelog": "3.3.0",
     "esbuild": "0.13.12",
-    "eslint": "8.3.0",
+    "eslint": "9.30.1",
+    "eslint-plugin-obsidianmd": "0.1.9",
+    "globals": "14.0.0",
+    "jiti": "2.6.1",
     "monkey-around": "2.3.0",
     "obsidian": "obsidianmd/obsidian-api#4c5889aa06d3ceb3d4d3a20931fbeaede6d399a0",
     "standard-version": "^9.3.2",
     "tslib": "2.5.0",
-    "typescript": "5.6.3"
+    "typescript": "5.6.3",
+    "typescript-eslint": "8.35.1"
   },
   "config": {
     "commitizen": {
