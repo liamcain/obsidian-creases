@@ -31,27 +31,29 @@ declare module "obsidian" {
     applyFoldInfo(info: FoldInfo): void;
   }
 
-  interface Workspace {
-    on(name: "status-bar-updated", callback: () => any, ctx?: any): EventRef;
-    on(name: "ribbon-bar-updated", callback: () => any, ctx?: any): EventRef;
+  export interface Workspace extends Events {
     on(
       name: "templates:template-appended",
-      callback: (event: TemplaterAppendedEvent) => any,
+      callback: (event: TemplaterAppendedEvent) => unknown,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ctx?: any
     ): EventRef;
     on(
       name: "templater:new-note-from-template",
-      callback: (event: TemplaterNewNoteEvent) => any,
+      callback: (event: TemplaterNewNoteEvent) => unknown,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ctx?: any
     ): EventRef;
     on(
       name: "templater:template-appended",
-      callback: (event: TemplaterAppendedEvent) => any,
+      callback: (event: TemplaterAppendedEvent) => unknown,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ctx?: any
     ): EventRef;
     on(
       name: "templater:overwrite-file",
-      callback: (event: TemplaterOverwriteEvent) => any,
+      callback: (event: TemplaterOverwriteEvent) => unknown,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ctx?: any
     ): EventRef;
   }
@@ -95,6 +97,7 @@ declare module "obsidian" {
   }
 
   interface Vault {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     config: Record<string, any>;
     getConfig<T extends keyof VaultSettings>(setting: T): VaultSettings[T];
   }

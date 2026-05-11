@@ -2,7 +2,6 @@ import {
   Editor,
   EditorChange,
   EditorSelection,
-  EventRef,
   FoldRange,
   MarkdownFileInfo,
   MarkdownView,
@@ -26,7 +25,6 @@ const BLOCK_ID_REGEX = /\^([a-zA-Z0-9-]+)$/;
 
 export default class CreasesPlugin extends Plugin {
   public settings!: CreasesSettings;
-  private onFileOpenListener: EventRef | null = null;
 
   private get activeEditor(): MarkdownViewController | null {
     return this.app.workspace.activeEditor as MarkdownViewController | null;
@@ -152,8 +150,13 @@ export default class CreasesPlugin extends Plugin {
       });
     });
 
-    this.onFileOpenListener = this.app.workspace.on('file-open', this.onFileOpen, this);
-    this.registerEvent(this.onFileOpenListener);
+    const onFileOpenListener = this.app.workspace.on('file-open', () => {
+      if (this.app.workspace.activeLeaf) {
+        this.patchMarkdownView();
+        this.app.workspace.offref(onFileOpenListener);
+      }
+    }, this);
+    this.registerEvent(onFileOpenListener);
 
     this.registerEvent(this.app.workspace.on("editor-menu", this.onEditorMenu, this));
     this.registerEvent(
@@ -172,13 +175,6 @@ export default class CreasesPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on("templates:template-appended", this.onTemplateAppend, this)
     );
-  }
-
-  private onFileOpen(_file: TFile): void {
-    if (this.app.workspace.activeLeaf) {
-      this.patchMarkdownView();
-      this.app.workspace.offref(this.onFileOpenListener);
-    }
   }
 
   private async handleNewFile(file: TFile, contents: string): Promise<void> {
