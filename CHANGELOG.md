@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.3](https://github.com/liamcain/obsidian-creases/compare/0.7.2...0.7.3) (2026-05-11)
+
+
+### Bug Fixes
+
+* **build:** Add basic sortBy shim to fully remove lodash usage ([97a8781](https://github.com/liamcain/obsidian-creases/commit/97a8781e5ffd10c34aeed514753c98c62ce02630))
+* **build:** Bring back monkey-around dependency ([bd8d2bd](https://github.com/liamcain/obsidian-creases/commit/bd8d2bdb7bf3ee85e4cdeb36cba57f74ca457c8b))
+
 ### [0.7.2](https://github.com/liamcain/obsidian-creases/compare/0.7.1...0.7.2) (2026-05-11)
 
 
