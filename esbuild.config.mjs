@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import esbuild from "esbuild";
 import process from "process";
-import builtins from "builtin-modules";
+import { builtinModules } from "node:module";
 
 import manifest from "./manifest.json" assert { type: "json" };
 
@@ -52,7 +52,7 @@ esbuild
       "@codemirror/stream-parser",
       "@codemirror/text",
       "@codemirror/view",
-      ...builtins,
+      ...builtinModules,
     ],
     format: "cjs",
     watch: !prod,

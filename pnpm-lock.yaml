@@ -26,9 +26,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: 5.13.0
         version: 5.13.0(eslint@8.3.0)(typescript@4.5.2)
-      builtin-modules:
-        specifier: ^3.2.0
-        version: 3.3.0
       cz-conventional-changelog:
         specifier: 3.3.0
         version: 3.3.0(@types/node@16.18.126)(typescript@4.5.2)
@@ -310,10 +307,6 @@ packages:
 
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
-
-  builtin-modules@3.3.0:
-    resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
-    engines: {node: '>=6'}
 
   cachedir@2.3.0:
     resolution: {integrity: sha512-A+Fezp4zxnit6FanDmv9EqXNAi3vt9DWp51/71UEhXukb7QUuvtv9344h91dyAxuTLoSYJFU299qzR3tzwPAhw==}
@@ -1996,8 +1989,6 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
-
-  builtin-modules@3.3.0: {}
 
   cachedir@2.3.0: {}
 
