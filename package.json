@@ -14,7 +14,11 @@
     "release": "standard-version"
   },
   "standard-version": {
-    "t": ""
+    "t": "",
+    "bumpFiles": [
+      { "filename": "package.json", "type": "json" },
+      { "filename": "manifest.json", "type": "json" }
+    ]
   },
   "devDependencies": {
     "@codemirror/state": "6.4.1",
