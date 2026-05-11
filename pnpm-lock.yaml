@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      lodash:
-        specifier: 4.17.21
-        version: 4.17.21
     devDependencies:
       '@codemirror/language':
         specifier: https://github.com/lishid/cm-language
@@ -21,9 +17,6 @@ importers:
       '@codemirror/view':
         specifier: https://github.com/lishid/cm-view
         version: https://codeload.github.com/lishid/cm-view/tar.gz/23b81c419e1fd95b7502749b6fbe356d42ad89a3
-      '@types/lodash':
-        specifier: 4.14.179
-        version: 4.14.179
       '@types/node':
         specifier: ^16.11.6
         version: 16.18.126
@@ -164,9 +157,6 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
-
-  '@types/lodash@4.14.179':
-    resolution: {integrity: sha512-uwc1x90yCKqGcIOAT6DwOSuxnrAbpkdPsUOZtwrXb4D/6wZs+6qG7QnIawDuZWg0sWpxl+ltIKCaLoMlna678w==}
 
   '@types/minimist@1.2.5':
     resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
@@ -1836,8 +1826,6 @@ snapshots:
   '@types/estree@1.0.8': {}
 
   '@types/json-schema@7.0.15': {}
-
-  '@types/lodash@4.14.179': {}
 
   '@types/minimist@1.2.5': {}
 

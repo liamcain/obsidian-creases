@@ -16,14 +16,10 @@
   "standard-version": {
     "t": ""
   },
-  "dependencies": {
-    "lodash": "4.17.21"
-  },
   "devDependencies": {
     "@codemirror/state": "6.4.1",
     "@codemirror/language": "https://github.com/lishid/cm-language",
 		"@codemirror/view": "https://github.com/lishid/cm-view",
-    "@types/lodash": "4.14.179",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "5.13.0",
     "@typescript-eslint/parser": "5.13.0",
