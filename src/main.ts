@@ -37,12 +37,13 @@ export default class CreasesPlugin extends Plugin {
     this.registerEditorExtension(creasePlugin(this.app));
     this.addCommand({
       id: "fold",
+      // eslint-disable-next-line obsidianmd/commands/no-plugin-name-in-command-name
       name: "Fold along creases",
       checkCallback: (checking) => {
         const ctx = this.activeEditor;
         if (ctx && ctx.editor) {
           if (!checking) {
-            this.foldCreasesForView(ctx);
+            void this.foldCreasesForView(ctx);
           }
           return true;
         }
@@ -78,7 +79,9 @@ export default class CreasesPlugin extends Plugin {
     });
 
     this.addCommand({
+      // eslint-disable-next-line obsidianmd/commands/no-plugin-id-in-command-id
       id: "clear-creases",
+      // eslint-disable-next-line obsidianmd/commands/no-plugin-name-in-command-name
       name: "Iron out (clear) the creases",
       checkCallback: (checking) => {
         const ctx = this.activeEditor;
@@ -100,7 +103,7 @@ export default class CreasesPlugin extends Plugin {
           const headings = this.app.metadataCache.getFileCache(ctx.file)?.headings ?? [];
           if (headings.length > 0) {
             if (!checking) {
-              this.increaseHeadingFoldLevel(ctx);
+              void this.increaseHeadingFoldLevel(ctx);
             }
             return true;
           }
@@ -117,7 +120,7 @@ export default class CreasesPlugin extends Plugin {
           const headings = this.app.metadataCache.getFileCache(ctx.file)?.headings ?? [];
           if (headings.length > 0) {
             if (!checking) {
-              this.decreaseHeadingFoldLevel(ctx);
+              void this.decreaseHeadingFoldLevel(ctx);
             }
             return true;
           }
@@ -151,6 +154,7 @@ export default class CreasesPlugin extends Plugin {
     });
 
     const onFileOpenListener = this.app.workspace.on('file-open', () => {
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       if (this.app.workspace.activeLeaf) {
         this.patchMarkdownView();
         this.app.workspace.offref(onFileOpenListener);
@@ -158,9 +162,9 @@ export default class CreasesPlugin extends Plugin {
     }, this);
     this.registerEvent(onFileOpenListener);
 
-    this.registerEvent(this.app.workspace.on("editor-menu", this.onEditorMenu, this));
+    this.registerEvent(this.app.workspace.on("editor-menu", this.onEditorMenu.bind(this)));
     this.registerEvent(
-      this.app.workspace.on("templater:overwrite-file", this.onTemplaterNewFile, this)
+      this.app.workspace.on("templater:overwrite-file", this.onTemplaterNewFile.bind(this))
     );
     this.registerEvent(
       this.app.workspace.on(
@@ -179,14 +183,12 @@ export default class CreasesPlugin extends Plugin {
 
   private async handleNewFile(file: TFile, contents: string): Promise<void> {
     if (
-      ["start-folded", "fold-and-clear"].contains(
-        this.settings.templateCreasesBehavior
-      ) &&
+      ["start-folded", "fold-and-clear"].contains(this.settings.templateCreasesBehavior) &&
       hasCrease(contents)
     ) {
-      this.foldCreasesForFile(file);
+      await this.foldCreasesForFile(file);
       if (this.settings.templateCreasesBehavior === "fold-and-clear") {
-        this.app.vault.modify(file, contents.replace(new RegExp(CREASE_REGEX, "g"), ""));
+        await this.app.vault.modify(file, contents.replace(new RegExp(CREASE_REGEX, "g"), ""));
       }
     }
   }
@@ -196,12 +198,12 @@ export default class CreasesPlugin extends Plugin {
       return;
     }
     const contents = await this.app.vault.cachedRead(fileOrFolder);
-    this.handleNewFile(fileOrFolder, contents);
+    void this.handleNewFile(fileOrFolder, contents);
   }
 
   private async onTemplaterNewFile(evt: TemplaterNewNoteEvent): Promise<void> {
     const { file, contents } = evt;
-    this.handleNewFile(file, contents);
+    void this.handleNewFile(file, contents);
   }
 
   async onTemplateAppend(evt: TemplaterAppendedEvent): Promise<void> {
@@ -316,6 +318,7 @@ export default class CreasesPlugin extends Plugin {
   private patchMarkdownView() {
     const plugin = this as CreasesPlugin;
     const { workspace } = this.app;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const leaf = workspace.activeLeaf;
 
     if (!leaf) {
@@ -599,7 +602,7 @@ export default class CreasesPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as CreasesSettings);
   }
 
   async saveSettings(): Promise<void> {
