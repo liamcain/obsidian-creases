@@ -1,4 +1,3 @@
-import sortBy from "lodash/sortBy";
 import {
   Editor,
   EditorChange,
@@ -18,7 +17,7 @@ import {
 import { around } from "monkey-around";
 
 import { creasePlugin } from "./creaseWidget";
-import { CREASE_REGEX, hasCrease } from "./utils";
+import { CREASE_REGEX, hasCrease, sortBy } from "./utils";
 import { CreasesSettings, CreasesSettingTab, DEFAULT_SETTINGS } from "./settings";
 
 const headingLevels = [1, 2, 3, 4, 5, 6];
