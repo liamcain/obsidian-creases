@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.4](https://github.com/liamcain/obsidian-creases/compare/0.7.3...0.7.4) (2026-05-11)
+
+
+### Bug Fixes
+
+* **settings:** Remove <h3> to confirm to plugin guidelines ([e5d576c](https://github.com/liamcain/obsidian-creases/commit/e5d576ca3f2e1b23b287e3db51ab50cb9193c5b0))
+
 ### [0.7.3](https://github.com/liamcain/obsidian-creases/compare/0.7.2...0.7.3) (2026-05-11)
 
 
