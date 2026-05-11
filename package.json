@@ -28,7 +28,6 @@
     "dotenv": "16.0.0",
     "esbuild": "0.13.12",
     "eslint": "8.3.0",
-    "monkey-around": "2.3.0",
     "obsidian": "latest",
     "standard-version": "^9.3.2",
     "tslib": "2.3.1",
