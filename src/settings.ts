@@ -29,10 +29,6 @@ export class CreasesSettingTab extends PluginSettingTab<CreasesSettings> {
 
     containerEl.empty();
 
-    containerEl.createEl("h3", {
-      text: "Crease Behavior",
-    });
-
     new Setting(containerEl)
       .setName("How should creases behave when opening a new file?")
       .setDesc(
