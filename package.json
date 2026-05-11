@@ -8,11 +8,14 @@
   "packageManager": "pnpm@10.22.0",
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "dev": "node --experimental-json-modules esbuild.config.mjs",
-    "build": "pnpm run lint && node --experimental-json-modules esbuild.config.mjs production",
-    "build:ci": "node --experimental-json-modules esbuild.config.mjs production",
-    "build:local": "node scripts/build-local.mjs",
+    "dev": "node --env-file-if-exists=.env esbuild.config.mjs",
+    "build": "pnpm run lint && node esbuild.config.mjs production",
+    "build:ci": "node esbuild.config.mjs production",
+    "build:local": "node --env-file-if-exists=.env scripts/build-local.mjs",
     "release": "standard-version"
+  },
+  "engines": {
+    "node": ">=22.9.0"
   },
   "standard-version": {
     "t": "",
@@ -34,7 +37,6 @@
     "@typescript-eslint/eslint-plugin": "5.13.0",
     "@typescript-eslint/parser": "5.13.0",
     "cz-conventional-changelog": "3.3.0",
-    "dotenv": "16.0.0",
     "esbuild": "0.13.12",
     "eslint": "8.3.0",
     "monkey-around": "2.3.0",

@@ -26,9 +26,6 @@ importers:
       cz-conventional-changelog:
         specifier: 3.3.0
         version: 3.3.0(@types/node@16.18.126)(typescript@5.6.3)
-      dotenv:
-        specifier: 16.0.0
-        version: 16.0.0
       esbuild:
         specifier: 0.13.12
         version: 0.13.12
@@ -524,10 +521,6 @@ packages:
   dot-prop@5.3.0:
     resolution: {integrity: sha512-QM8q3zDe58hqUqjraQOmzZ1LIH9SWQJTlEKCH4kJ2oQvLZk7RbQXvtDM2XEq3fwkV9CCvvH4LA0AV+ogFsBM2Q==}
     engines: {node: '>=8'}
-
-  dotenv@16.0.0:
-    resolution: {integrity: sha512-qD9WU0MPM4SWLPJy/r2Be+2WgQj8plChsyrCNQzW/0WjvcJQiKQJ9mH3ZgB3fxbUUxgc/11ZJ0Fi5KiimWGz2Q==}
-    engines: {node: '>=12'}
 
   dotgitignore@2.1.0:
     resolution: {integrity: sha512-sCm11ak2oY6DglEPpCB8TixLjWAxd3kJTs6UIcSasNYxXdFPV+YKlye92c8H4kKFqV5qYMIh7d+cYecEg0dIkA==}
@@ -2228,8 +2221,6 @@ snapshots:
   dot-prop@5.3.0:
     dependencies:
       is-obj: 2.0.0
-
-  dotenv@16.0.0: {}
 
   dotgitignore@2.1.0:
     dependencies:
