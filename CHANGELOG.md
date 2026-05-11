@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.2](https://github.com/liamcain/obsidian-creases/compare/0.7.1...0.7.2) (2026-05-11)
+
+
+### Bug Fixes
+
+* **build:** Fix switch to pnpm causing publish script to fail ([f518ace](https://github.com/liamcain/obsidian-creases/commit/f518ace944dd11fa9ffeb2c495905eaa09773142))
+
 ### [0.7.1](https://github.com/liamcain/obsidian-creases/compare/0.7.0...0.7.1) (2026-05-11)
 
 
