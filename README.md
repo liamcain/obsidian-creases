@@ -4,29 +4,29 @@ Tools for efficiently folding markdown sections in Obsidian.
 
 ![creases-overview](https://user-images.githubusercontent.com/693981/156103767-33f311de-39ac-422d-b8ea-987ea9c63f7b.png)
 
-Add `%% fold %%` markers to "crease" your markdown. Then run **Fold along creases** to get your file into the state you want.
+## What is a crease?
 
-## ⚙️ Commands
+A crease is a [comment](<https://obsidian.md/help/syntax#Comments>) inside your Markdown that indicates you want a fold there. Think of it like a crease in a piece of paper, its much easier to fold along the creases!
 
-### General Folding
+```md
+%% fold %%
+```
 
-- **Fold headings by level** – Fold all headings in the correct document that match a given level (H1 - H6)
-- **Fold More** - Finds and folds the closest heading or list item.
-- **Fold less** - Finds and unfolds the closest heading or list item.
+## Basic usage
 
-### Fold Levels
+The plugin adds several commands to add and use creases in your files:
+
+- **Toggle crease:** Add or remove a fold marker to the closest foldable line. This could be a heading or a list.
+- **Fold along creases** – Fold all the creased sections of your file.
+- **Iron out the creases** – Remove all the creases from the current file.
+- **Crease the current folds** – Applies a crease to the current folds in the file, allowing you to easily get back to these current folds using **fold along creases**.
+
+## Fold levels (Advanced)
 
 Creases also borrows the concept of a "fold level" from vim. The fold level is inferred from the current folds in the note. If have you have your `## Heading Level 2` headings folded, _decreasing_ the fold level will unfold all headings up to `# Heading Level 1`. _Increasing_ the fold level will unfold up to your `### Heading Level 3`.
 
-- **Increase heading fold level** - Increase the fold level by 1
-- **Decrease heading fold level** - Decrease the fold level by 1
-
-### Working with "creases"
-
-- **Toggle Crease** – Crease/uncrease the current section that you're in
-- **Crease the current folds** – Applies a crease to the current folds in the file, allowing you to easily get back to these current folds using **fold along creases**.
-- **Fold along creases** – Fold all the creased sections of your file
-- **Iron out the creases** – Remove all the creases from the current file
+- **Increase heading fold level** - Increase the fold level by 1.
+- **Decrease heading fold level** - Decrease the fold level by 1.
 
 ## ➕ Additional Features
 
@@ -61,9 +61,3 @@ Folding all the headings at a given depth can be a tedious process. Well, no lon
 ## 🎞 Credits
 
 Special thanks **@mleo2003** on Discord for the plugin name.
-
-## Say Thanks 🙏
-
-If you like this plugin and would like to buy me a coffee, you can!
-
-[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png" alt="BuyMeACoffee" width="100">](https://www.buymeacoffee.com/liamcain)
