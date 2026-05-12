@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.7](https://github.com/liamcain/obsidian-creases/compare/0.7.6...0.7.7) (2026-05-12)
+
 ### [0.7.6](https://github.com/liamcain/obsidian-creases/compare/0.7.4...0.7.6) (2026-05-12)
 
 ### [0.7.5](https://github.com/liamcain/obsidian-creases/compare/0.7.4...0.7.5) (2026-05-12)
