@@ -12,12 +12,12 @@
     "build": "pnpm run lint && node esbuild.config.mjs production",
     "build:ci": "node esbuild.config.mjs production",
     "build:local": "node --env-file-if-exists=.env scripts/build-local.mjs",
-    "release": "standard-version"
+    "release": "commit-and-tag-version"
   },
   "engines": {
     "node": ">=22.9.0"
   },
-  "standard-version": {
+  "commit-and-tag-version": {
     "t": "",
     "bumpFiles": [
       {
@@ -35,6 +35,7 @@
     "@codemirror/view": "6.38.6",
     "@eslint/js": "9.30.1",
     "@types/node": "^16.11.6",
+    "commit-and-tag-version": "^12.7.3",
     "esbuild": "0.13.12",
     "eslint": "9.30.1",
     "eslint-plugin-obsidianmd": "0.2.9",
@@ -42,7 +43,6 @@
     "jiti": "2.6.1",
     "monkey-around": "2.3.0",
     "obsidian": "obsidianmd/obsidian-api#4c5889aa06d3ceb3d4d3a20931fbeaede6d399a0",
-    "standard-version": "^9.3.2",
     "tslib": "2.5.0",
     "typescript": "5.6.3",
     "typescript-eslint": "8.35.1"
