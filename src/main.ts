@@ -1,4 +1,5 @@
 import {
+  App,
   Editor,
   EditorChange,
   EditorSelection,
@@ -129,7 +130,7 @@ export default class CreasesPlugin extends Plugin {
     });
 
     this.app.workspace.onLayoutReady(() => {
-      this.registerEvent(this.app.vault.on("create", this.onNewFile.bind(this)));
+      this.registerEvent(this.app.vault.on("create", (file) => this.onNewFile(file)));
       this.patchCoreTemplatePlugin();
     });
 
@@ -162,22 +163,24 @@ export default class CreasesPlugin extends Plugin {
     }, this);
     this.registerEvent(onFileOpenListener);
 
-    this.registerEvent(this.app.workspace.on("editor-menu", this.onEditorMenu.bind(this)));
     this.registerEvent(
-      this.app.workspace.on("templater:overwrite-file", this.onTemplaterNewFile.bind(this))
-    );
-    this.registerEvent(
-      this.app.workspace.on(
-        "templater:new-note-from-template",
-        this.onTemplaterNewFile,
-        this
+      this.app.workspace.on("editor-menu", (menu, editor, info) =>
+        this.onEditorMenu(menu, editor, info)
       )
     );
     this.registerEvent(
-      this.app.workspace.on("templater:template-appended", this.onTemplateAppend, this)
+      this.app.workspace.on("templater:overwrite-file", (evt) => this.onTemplaterNewFile(evt))
     );
     this.registerEvent(
-      this.app.workspace.on("templates:template-appended", this.onTemplateAppend, this)
+      this.app.workspace.on("templater:new-note-from-template", (evt) =>
+        this.onTemplaterNewFile(evt)
+      )
+    );
+    this.registerEvent(
+      this.app.workspace.on("templater:template-appended", (evt) => this.onTemplateAppend(evt))
+    );
+    this.registerEvent(
+      this.app.workspace.on("templates:template-appended", (evt) => this.onTemplateAppend(evt))
     );
   }
 
@@ -201,12 +204,12 @@ export default class CreasesPlugin extends Plugin {
     void this.handleNewFile(fileOrFolder, contents);
   }
 
-  private async onTemplaterNewFile(evt: TemplaterNewNoteEvent): Promise<void> {
+  private onTemplaterNewFile(evt: TemplaterNewNoteEvent): void {
     const { file, contents } = evt;
     void this.handleNewFile(file, contents);
   }
 
-  async onTemplateAppend(evt: TemplaterAppendedEvent): Promise<void> {
+  onTemplateAppend(evt: TemplaterAppendedEvent): void {
     if (
       !["start-folded", "fold-and-clear"].contains(this.settings.templateCreasesBehavior)
     ) {
@@ -259,7 +262,7 @@ export default class CreasesPlugin extends Plugin {
     view.editor.transaction({ changes });
   }
 
-  async decreaseHeadingFoldLevel(ctx: MarkdownViewController) {
+  decreaseHeadingFoldLevel(ctx: MarkdownViewController) {
     if (!ctx.editor || !ctx.file) return;
     const existingFolds = ctx.editMode.getFoldInfo()?.folds ?? [];
     const headings = this.app.metadataCache.getFileCache(ctx.file)?.headings ?? [];
@@ -288,7 +291,7 @@ export default class CreasesPlugin extends Plugin {
     ctx.onMarkdownFold();
   }
 
-  async increaseHeadingFoldLevel(ctx: MarkdownViewController) {
+  increaseHeadingFoldLevel(ctx: MarkdownViewController) {
     if (!ctx.editor || !ctx.file) return;
     const existingFolds = ctx.editMode.getFoldInfo()?.folds ?? [];
     const headings = this.app.metadataCache.getFileCache(ctx.file)?.headings ?? [];
@@ -331,7 +334,7 @@ export default class CreasesPlugin extends Plugin {
           return async function (file: TFile) {
             await old.call(this, file);
             if (file && plugin.settings.onOpenCreasesBehavior === "always-fold") {
-              plugin.foldCreasesForFile(file);
+              void plugin.foldCreasesForFile(file);
             }
           };
         },
@@ -348,8 +351,8 @@ export default class CreasesPlugin extends Plugin {
 
     this.register(
       around(coreTemplatePlugin.instance.constructor.prototype, {
-        insertTemplate(old: () => void) {
-          return async function (templateFile: TFile) {
+        insertTemplate(old: (templateFile: TFile) => Promise<void>) {
+          return async function (this: { app: App }, templateFile: TFile) {
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (!view) {
               return;
@@ -360,7 +363,7 @@ export default class CreasesPlugin extends Plugin {
             const newSelections = view.editor.listSelections();
 
             this.app.workspace.trigger("templates:template-appended", {
-              content: this.app.vault.cachedRead(templateFile),
+              content: await this.app.vault.cachedRead(templateFile),
               oldSelections,
               newSelections,
               view,
@@ -482,7 +485,7 @@ export default class CreasesPlugin extends Plugin {
     return foldPositions;
   }
 
-  async foldCreasesForView(ctx: MarkdownViewController): Promise<void> {
+  foldCreasesForView(ctx: MarkdownViewController): void {
     if (!ctx.editor) return;
     const existingFolds = ctx.editMode.getFoldInfo();
 

@@ -1,7 +1,6 @@
 import tseslint from "typescript-eslint";
 import obsidianmd from "eslint-plugin-obsidianmd";
 import globals from "globals";
-import { globalIgnores } from "eslint/config";
 
 export default tseslint.config(
   {
@@ -11,19 +10,27 @@ export default tseslint.config(
       },
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["eslint.config.mts", "manifest.json"],
+          allowDefaultProject: ["eslint.config.mts"],
         },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         tsconfigRootDir: import.meta.dirname,
-        extraFileExtensions: [".json"],
       },
     },
   },
   ...obsidianmd.configs.recommended,
-  globalIgnores([
-    "node_modules",
-    "esbuild.config.mjs",
-    "scripts/build-local.mjs",
-    "main.js",
-    "src/obsidian.d.ts",
-  ]),
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      "no-undef": "off",
+    },
+  },
+  {
+    ignores: [
+      "node_modules",
+      "esbuild.config.mjs",
+      "scripts/build-local.mjs",
+      "main.js",
+      "src/obsidian.d.ts",
+    ],
+  },
 );

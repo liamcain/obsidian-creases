@@ -66,7 +66,7 @@ export class CreasesSettingTab extends PluginSettingTab<CreasesSettings> {
       });
   }
 
-  getSettingDefinitions(): SettingDefinitionItem<keyof CreasesSettings & string>[] {
+  getSettingDefinitions(): SettingDefinitionItem<keyof CreasesSettings>[] {
     return [
       {
         name: "How should creases behave when opening a new file?",

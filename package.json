@@ -38,7 +38,7 @@
     "cz-conventional-changelog": "3.3.0",
     "esbuild": "0.13.12",
     "eslint": "9.30.1",
-    "eslint-plugin-obsidianmd": "0.1.9",
+    "eslint-plugin-obsidianmd": "0.2.9",
     "globals": "14.0.0",
     "jiti": "2.6.1",
     "monkey-around": "2.3.0",

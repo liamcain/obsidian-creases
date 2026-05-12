@@ -63,7 +63,7 @@ export function creasePlugin(app: App) {
       constructor(public view: EditorView) {
         this.decorator = new MatchDecorator({
           regexp: /\B%%\s+fold\s+%%\B/g,
-          decoration: this.getDeco.bind(this),
+          decoration: (match, view, pos) => this.getDeco(match, view, pos),
         });
         this.decorations = this.decorator.createDeco(view);
       }
